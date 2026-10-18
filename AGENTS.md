@@ -15,6 +15,7 @@
 - 默认只备份一份，不主动传入 `--backup-copy`。保留已有工作目录，不覆盖原始文件，不混用机身备份。
 - `needs_review`、通信中断或未知结果时停止，不盲目重跑写入或强制重启。特定USB返回超时按文档处理。
 - 仅当用户了解专项诊断尚未真机验证并明确选择运行时，才可按 docs/INTERRUPTED-INSTALL.md 使用 diagnose；它不推进安装状态、不放行未知参数、不执行 WBI 收尾。
+- `finish-install` 仅在用户了解其未实机验证的WBI写入和精确 +60 审查例外后显式选择时使用。按 docs/INTERRUPTED-INSTALL.md 核验；不手改状态/证据或删除 finish-attempt.private.json，不为满足条件修改全局白名单；它不适用于其他错误、NTSC组合或未知WBI结果。
 - 不通过聊天索取密码，不设置免密码sudo，不关闭SIP或绕过宿主权限拒绝。
 - 准备/验证会运行临时机内模块；不能称为完全无设备操作。
 

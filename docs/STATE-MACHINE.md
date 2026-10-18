@@ -28,3 +28,7 @@ CLI 再根据当前阶段和已保存证据确认完整结果，记录 `prepared
 `restore` 调用上游已知候选的完整哈希检查及原文件恢复，成功为 `restored_pending_cold_start`。如果主体完成但普通USB返回超时，会带 `_usb_unconfirmed` 后缀。随后需人工冷启动和检查；本工具的 `verify` 针对已安装FL2/FL3，不验证恢复后的原版运行状态。
 
 默认一份备份；只有显式指定可选的 `--backup-copy` 才额外保存副本。为兼容未修改的上游加载器，单副本状态中的 `backup_copy` 指向 `original/` 自身，`backup_copies: 1` 记录实际份数。该字段不代表存在第二份独立备份。
+
+## 已知 writing_settings 停止点的专项收尾
+
+`finish-install --accept-experimental-finish` 仅处理完整历史证据与实时状态均匹配的原FL2/FL3、固定 +60 失败。详见 [适用条件与风险](INTERRUPTED-INSTALL.md#可选已知停止点的实验性-wbi-收尾)。它不修改计数白名单、不重写程序或保存参数。写WBI之前创建持久化尝试标记并进入 finishing_snapshot；重复尝试一律拒绝。完成后才进入 installed_pending_cold_start（或已完成主体的USB未确认变体）；WBI结果不明则 needs_review / failed_action=finish-install，不允许再次自动续写。此新增路径仅有离线测试，尚无实机结果。

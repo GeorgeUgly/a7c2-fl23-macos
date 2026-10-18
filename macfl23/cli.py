@@ -69,19 +69,22 @@ def parser():
     commands = result.add_subparsers(dest='action', required=True)
     for name in ('setup', 'check', 'usb-status'):
         commands.add_parser(name)
-    for name in ('status', 'prepare', 'install', 'verify', 'restore', 'diagnose'):
+    for name in ('status', 'prepare', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
         command = commands.add_parser(name)
         command.add_argument('--workspace', required=True, type=Path)
         if name == 'prepare':
             command.add_argument('--backup-copy', type=Path, help='可选：另存一份副本；默认只保存工作目录中的一份备份')
             command.add_argument('--disable-ntsc-warning', action='store_true',
                                  help='实验性选项：同时取消 NTSC 开机提示（尚未实机验证）；默认只安装 FL2/FL3')
-        if name in ('install', 'restore', 'diagnose'):
+        if name in ('install', 'restore', 'diagnose', 'finish-install'):
             command.add_argument('--battery-percent', required=True, type=int,
                                  help='相机屏幕显示的实际百分比，50–100；不能估算或填示例值')
         if name in ('verify', 'restore'):
             command.add_argument('--cold-start-confirmed', action='store_true',
                                  help='已正常关机、等存取灯灭、取出电池约10秒、重新开机')
+        if name == 'finish-install':
+            command.add_argument('--accept-experimental-finish', action='store_true',
+                                 help='明确接受未实机验证的专项收尾及已报告 +60 差异审查风险')
         if name == 'restore':
             command.add_argument('--st-selected', action='store_true',
                                  help='冷启动前已将外观选为ST')
@@ -114,13 +117,18 @@ def run_camera(args):
         raise RuntimeError('相机操作只支持 macOS')
     if os.geteuid() != 0:
         raise RuntimeError('请在自己的终端使用 sudo 运行相机操作')
-    if args.action in ('install', 'restore', 'diagnose') and not 50 <= args.battery_percent <= 100:
+    if args.action in ('install', 'restore', 'diagnose', 'finish-install') and not 50 <= args.battery_percent <= 100:
         raise ValueError('相机实际电量必须至少50%；未开始USB操作')
     if args.action in ('verify', 'restore') and not args.cold_start_confirmed:
         raise ValueError('请先按文档完成冷启动，再使用 --cold-start-confirmed')
     if args.action == 'restore' and not args.st_selected:
         raise ValueError('恢复前须选择ST，再完成冷启动；需要 --st-selected')
     workspace = private_path(args.workspace, existing=args.action != 'prepare')
+    if args.action == 'finish-install':
+        if not args.accept_experimental_finish:
+            raise ValueError('专项收尾尚未真机验证；需显式指定 --accept-experimental-finish')
+        from .finish import run_finish
+        return run_finish(workspace)
     if args.action == 'diagnose':
         from .diagnostic import run_diagnosis
         return run_diagnosis(workspace)
@@ -242,6 +250,6 @@ def main(argv=None):
         return 0
     except (Exception, KeyboardInterrupt) as exc:
         print('STOPPED: ' + simplify_message(exc), file=sys.stderr)
-        if args.action in ('prepare', 'install', 'verify', 'restore', 'diagnose'):
+        if args.action in ('prepare', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
             print('如已开始相机操作，请保留当前状态和工作目录，先检查结果，不要盲目重跑、断线或重启。', file=sys.stderr)
         return 1
