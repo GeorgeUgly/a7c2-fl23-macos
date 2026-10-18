@@ -183,14 +183,19 @@ RESULT: installed_pending_cold_start
 
 没有出现上述最终结果，或结果带 `_usb_unconfirmed` 后缀时，先看下方故障说明，不要自行重复安装。
 
-### 5. 取电池重启，再验证
+### 5. 取电池重启，检查菜单并试拍
 
 **只有上一步完成后**才按这个顺序操作：
 
 1. 拔 USB，正常关机，等存取灯熄灭。
 2. 取出电池约 **10 秒**，装回开机。
 3. 查看 FL2/FL3 是否出现，分别使用相机内建重设；用 ST、FL2、FL3 各拍一张新照片并回放。
-4. 重新连接 Mac，选 **第 2 项「影像传输（MSC）」**，运行：
+
+**完成以上步骤，FL2/FL3 菜单正常显示，ST、FL2、FL3 均能正常拍摄和回放，就完成了基本使用检查，可以结束操作。无需为了日常使用再次连接 Mac。** 保留整个 `A7C2-work` 文件夹。
+
+### 可选：重新连接 Mac，做一次电脑端复核
+
+**下面这一步不是必做项，是额外的保险验证。** 想进一步检查冷启动后的程序文件、参数和运行状态，可以重新连接 Mac，选 **第 2 项「影像传输（MSC）」**，运行：
 
 ```sh
 sudo ./a7c2-mac verify --workspace "$HOME/Pictures/A7C2-work" --cold-start-confirmed
@@ -207,7 +212,7 @@ sudo ./a7c2-mac verify --workspace "$HOME/Pictures/A7C2-work" --cold-start-confi
 RESULT: verified_after_cold_start
 ```
 
-最后的 `RESULT: verified_after_cold_start` 表示电脑端的程序、参数及运行区域核验通过。它不会替你检查照片效果；还需要确认 **FL2/FL3 菜单出现、ST/FL2/FL3 新照片能正常拍摄和回放**。两部分都通过，就完成了基本验证。保留整个 `A7C2-work` 文件夹。
+最后的 `RESULT: verified_after_cold_start` 表示这次额外的电脑端复核通过。菜单和试拍检查只能确认基本使用正常，不能替代这项程序、参数及运行区域核验；选择跳过时，不代表电脑端已核验通过。此命令会进入服务模式并运行临时诊断模块，但不会重新安装补丁。
 
 ### 怎么查看目前做到哪一步？
 
@@ -222,7 +227,7 @@ RESULT: verified_after_cold_start
 | `phase` | 含义 |
 | --- | --- |
 | `prepared` | 备份与预检查完成，可以进入安装步骤 |
-| `installed_pending_cold_start` | 安装完成，尚需按教程冷启动并验证 |
+| `installed_pending_cold_start` | 安装完成；需手动冷启动并试拍。若跳过可选的电脑复核，即使已完成试拍，此记录也不会自动更新 |
 | `verified_after_cold_start` | 冷启动后的电脑端核验完成，仍需人工试拍 |
 | 带 `_usb_unconfirmed` 后缀 | 操作主体已核验，但普通 USB 返回未确认，按下面说明处理 |
 | `needs_review` 或其他中间阶段 | 不能当作完成；保留现场，先检查日志 |
