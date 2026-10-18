@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "repository_commit_tested": "b2fc5edd86cda9cb77f60bc5304a391f51111cb0",
+  "model": "ILCE-7CM2",
+  "base_firmware": "2.01",
+  "host": "MacBook Air M4",
+  "command": "verify --cold-start-confirmed",
+  "workspace_source": "Existing per-body workspace from the predecessor scripts",
+  "physical_camera_count": 1,
+  "result": "verified_after_cold_start",
+  "full_AP_CP_readbacks": "passed",
+  "saved_target_settings": "passed",
+  "runtime_regions_verified": 6,
+  "normal_usb_returned": true,
+  "new_firmware_or_settings_writes": false,
+  "temporary_runtime_module_executed": true,
+  "tested_in_this_run": [
+    "MSC USB capture and physical-port identity",
+    "service authentication and identity matching",
+    "full AP/CP file hashes",
+    "saved CP/AP targets",
+    "six runtime memory and disk regions",
+    "service exit and normal MSC return"
+  ],
+  "not_hardware_tested_in_this_repository": [
+    "prepare and default single-backup creation",
+    "install",
+    "restore",
+    "interrupted-write recovery",
+    "second camera"
+  ]
+}
