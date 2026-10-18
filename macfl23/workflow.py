@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from .session import app, core, MacSession
+from . import ntsc
 
 
 def private_new_directory(path):
@@ -24,8 +25,58 @@ def write_new(path, raw):
 
 
 class MacJob(app.Job):
-    def prepare(self, second=None):
+    def load(self):
+        super().load()
+        if ntsc.enabled(self.state):
+            ntsc.assets()
+        return self
+
+    def final_hashes(self):
+        return [ntsc.AP_COMBINED, ntsc.CP_FL23] if ntsc.enabled(self.state) else core.FINAL
+
+    def patch_program(self, raw, chip, reverse=False):
+        if chip == 0 and ntsc.enabled(self.state):
+            if reverse:
+                return core.patch_program(ntsc.patch_ap(raw, True), chip, True)
+            return ntsc.patch_ap(core.patch_program(raw, chip))
+        return core.patch_program(raw, chip, reverse)
+
+    def module(self, session, name, mode=None):
+        if ntsc.enabled(self.state) and name in ('installer', 'runtime'):
+            from .ntsc_module import run
+            return run(self, session, core, name, mode)
+        return super().module(session, name, mode)
+
+    def files(self, session, expected):
+        if expected == core.FINAL:
+            expected = self.final_hashes()
+        return super().files(session, expected)
+
+    def verify(self):
+        self.load()
+        if not ntsc.enabled(self.state):
+            return super().verify()
+        with MacSession(self.state['identity']) as session:
+            self.files(session, self.final_hashes())
+            current = core.backup_records(session.call(session.camera.getBackupPresetData, True))
+            _, new = self.units()
+            if any(current[1][k].data != v for k, v in new.items()):
+                raise ValueError('重启后 CP 参数不符')
+            if any(current[0][k].data != bytes([10 + i]) for i, k in enumerate(core.AP_KEYS)):
+                raise ValueError('重启后 AP 绑定不符')
+            runtime = self.module(session, 'runtime')
+            candidate = self.patch_program((self.root / 'original/appFw.so.bin').read_bytes(), 0)
+            for span in runtime['spans']:
+                expected = candidate[span['offset']:span['offset'] + span['length']].hex()
+                if span['memory'] != expected or span['disk'] != expected:
+                    raise ValueError('运行状态与所选组合不符；保留状态，检查冷启动结果')
+        self.audit('post_restart_files_and_targets_verified', features=ntsc.FEATURES)
+        print('组合程序、参数和8处运行区域核验通过；NTSC 提示、菜单、拍摄及回放仍需实机确认。', flush=True)
+
+    def prepare(self, second=None, disable_ntsc_warning=False):
         core.assets()
+        if disable_ntsc_warning:
+            ntsc.assets()
         second = Path(second).absolute() if second else None
         if second and (second == self.root or second in self.root.parents or self.root in second.parents):
             raise ValueError('两份备份目录不能相同或互相包含')
@@ -42,7 +93,8 @@ class MacJob(app.Job):
         # redundancy. backup_copies records the actual number of locations.
         self.state = {'format': 1, 'model': core.MODEL, 'version': core.VERSION,
                       'phase': 'preparing', 'backup_copy': str(second or self.root / 'original'),
-                      'backup_copies': 2 if second else 1, 'backup_files': {}, 'journal': []}
+                      'backup_copies': 2 if second else 1, 'backup_files': {}, 'journal': [],
+                      'features': list(ntsc.FEATURES) if disable_ntsc_warning else ['fl23']}
         self.save('preparing')
 
         def backup(name, raw):
@@ -67,8 +119,8 @@ class MacJob(app.Job):
                 backup(name + '.bin', raw)
                 if core.sha(raw) != core.ORIGINAL[chip]:
                     raise ValueError('程序不匹配支持的原版 2.01；保留读取结果，停止')
-                candidate = core.patch_program(raw, chip)
-                if core.patch_program(candidate, chip, True) != raw:
+                candidate = self.patch_program(raw, chip)
+                if self.patch_program(candidate, chip, True) != raw:
                     raise ValueError('候选反向还原核验失败')
                 write_new(self.root / 'candidate' / name, candidate)
             for key in core.CP_KEYS:
@@ -96,10 +148,10 @@ class MacJob(app.Job):
         self.load()
         for chip, name in enumerate(core.PROGRAMS):
             original = (self.root / 'original' / (name + '.bin')).read_bytes()
-            candidate = core.patch_program(original, chip)
+            candidate = self.patch_program(original, chip)
             if (self.root / 'candidate' / name).read_bytes() != candidate:
                 raise ValueError('候选程序不匹配')
-            if core.patch_program(candidate, chip, True) != original:
+            if self.patch_program(candidate, chip, True) != original:
                 raise ValueError('候选无法精确还原')
         _, merged = self.units()
         for key, raw in merged.items():
@@ -129,7 +181,7 @@ class MacJob(app.Job):
             phase = 'settings_verified' if action == 'install' else 'restoring_programs'
             if self.state['phase'] != phase or (last.get('module'), last.get('mode')) != ('wbi', 1):
                 raise ValueError('Write completion not verified')
-            expected = core.FINAL if action == 'install' else core.ORIGINAL
+            expected = self.final_hashes() if action == 'install' else core.ORIGINAL
             for chip, name in enumerate(core.PROGRAMS):
                 files = sorted((self.root / 'readback').glob('*-' + name))
                 if not files or core.sha(files[-1].read_bytes()) != expected[chip]:
@@ -142,7 +194,9 @@ class MacJob(app.Job):
             if last.get('module') != 'runtime':
                 raise ValueError('Runtime evidence missing')
             paths = sorted((self.root / 'evidence').glob('*-runtime.bin'))
-            runtime = core.parse_native('runtime', paths[-1].read_bytes())
+            raw = paths[-1].read_bytes()
+            runtime = (ntsc.parse_native(core, 'runtime', raw) if ntsc.enabled(self.state)
+                       else core.parse_native('runtime', raw))
             candidate = (self.root / 'candidate' / 'appFw.so').read_bytes()
             for span in runtime['spans']:
                 expected = candidate[span['offset']:span['offset']+span['length']].hex()

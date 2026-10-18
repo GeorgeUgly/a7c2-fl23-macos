@@ -18,6 +18,12 @@
 
 ## 执行顺序
 
+### 安装内容选择
+
+默认仅 FL2/FL3。用户明确选择同时取消 NTSC 开机提示时，在下文 `prepare` 命令追加 `--disable-ntsc-warning`，并说明组合方案尚未实机验证；不要默认启用。选择保存在工作目录，后续安装、8处运行区域验证和恢复自动使用对应的精确指纹与模块。
+
+不修改既有工作目录的 `features` 来切换。旧工作目录默认为仅 FL2/FL3；已安装机身不能重复 prepare/install 追加此功能。当前专项 `diagnose` 只支持原 FL2/FL3 路径。详细说明见 [研究记录](../research/ntsc-boot-notice/README.md)。
+
 ### 1. 确认条件与已有状态
 
 读取根目录 `AGENTS.md`。先确认：

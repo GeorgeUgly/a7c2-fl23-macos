@@ -14,11 +14,22 @@
 | [ma1co/Sony-PMCA-RE](https://github.com/ma1co/Sony-PMCA-RE) | 上游使用的 USB/Senser 通信、机身备份操作和解析实现。 |
 | [ma1co/fwtool.py](https://github.com/ma1co/fwtool.py/pull/52) | 上游引用的官方固件离线解包分析工具，具体为 PR #52；本项目运行时不依赖它。 |
 
-我们的新增工作是 macOS USB 接管、流程与错误处理、备份核验及简明/AI安装教程。上述移植研究与基础工具的贡献归各原作者；固定提交、许可和完整致谢见 [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md)。
+我们的新增工作是 macOS USB 接管、流程与错误处理、备份核验、简明/AI安装教程，以及独立的实验性 NTSC 开机提示可选补丁。FL2/FL3 移植研究与基础工具的贡献归各原作者；固定提交、许可和完整致谢见 [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md)。
 
 > **先看这一句：这是实验性相机改装，有无法正常开机的风险，备份不保证能救砖。** 前身脚本已在一台机身完成安装，本仓库的 `verify` 已实机通过；本仓库通用版的首次备份、安装和恢复仍未实机测试。[查看验证范围](docs/VALIDATION.md)
 
 > **已知安装中断问题：** [Issue #2](https://github.com/MDHan/a7c2-fl23-macos/issues/2) 报告在 `writing_settings` 因 `0x02770015` 变化停止。此时程序可能已经写入，但收尾未完成，不能直接重装。专项 `diagnose` 仅经过离线测试、尚未真机验证；它会进入服务模式并运行临时模块，仍存在设备操作风险。请先阅读 [适用条件、风险和诊断方法](docs/INTERRUPTED-INSTALL.md)，再自行决定是否运行。
+
+## 可选安装内容
+
+| 选择 | 准备命令 | 开机 NTSC 提示 |
+| --- | --- | --- |
+| **仅 FL2/FL3（默认）** | `prepare --workspace …` | 保持原样 |
+| **FL2/FL3 + 取消 NTSC 提示（实验性）** | `prepare --workspace … --disable-ntsc-warning` | 候选补丁跳过提示，保留 NTSC 设置和制式切换功能 |
+
+**第二种组合尚未实机验证。** 已完成两处提示判断的离线分析、1024 组局部分支仿真及安装流程的离线测试；这不代表已验证真实开机、菜单切换、录像或恢复。详细证据与限制见 [NTSC 提示研究](research/ntsc-boot-notice/README.md)。不加选项时使用原有 FL2/FL3 路径。
+
+选择在备份准备时保存，后续 `install`、`verify` 和 `restore` 自动使用同一组合，不需要反复加参数。旧工作目录默认视为仅 FL2/FL3。**已装好 FL2/FL3 的机身不能通过重新 prepare/install 追加此功能**；本次没有提供现有安装的追加升级，也不要修改状态文件或校验来切换组合。
 
 ## 先确认设备和版本
 
@@ -47,6 +58,9 @@ https://github.com/MDHan/a7c2-fl23-macos
 
 先阅读 README.md、AGENTS.md 和 docs/AI-INSTALL.md，检查设备、固件、
 Python 和已有安装状态；不满足支持条件就停止并说明。
+默认仅安装 FL2/FL3，保留 NTSC 开机提示。
+只有我明确选择同时取消 NTSC 提示时，才在 prepare 加 --disable-ntsc-warning；
+该组合尚未实机验证，选择后按工作目录保存的组合安装、验证和恢复。
 我了解这是实验性改装，授权你完成环境准备、单份备份、预检查、安装和验证。
 能自动完成的请直接执行，不要每一步都询问。
 需要我连接相机、选择 MSC、提供实际电量、输入管理员密码或取电池时，
@@ -130,9 +144,19 @@ cd a7c2-fl23-macos
 
 ### 3. 备份并检查
 
+选择一种准备方式，使用尚不存在的仓库外工作目录。默认只加 FL2/FL3：
+
 ```sh
 sudo ./a7c2-mac prepare --workspace "$HOME/Pictures/A7C2-work"
 ```
+
+如果明确选择**同时取消 NTSC 开机提示（尚未实机验证）**，改用下面这一条，**不要把两条都执行**：
+
+```sh
+sudo ./a7c2-mac prepare --workspace "$HOME/Pictures/A7C2-work" --disable-ntsc-warning
+```
+
+两种方式的后续安装命令相同。`status` 中 `features: ["fl23"]` 表示仅 FL2/FL3；`["fl23", "no_ntsc_notice"]` 表示组合方案。专项 `diagnose` 当前只支持原有 FL2/FL3，组合方案会在 USB 操作前拒绝该诊断。
 
 出现 `Password:` 时输入 Mac 管理员密码，终端**不会显示字符，也不会显示星号**，输完按回车即可；如果近期已认证，也可能不再询问。
 
@@ -192,6 +216,8 @@ RESULT: installed_pending_cold_start
 1. 拔 USB，正常关机，等存取灯熄灭。
 2. 取出电池约 **10 秒**，装回开机。
 3. 查看 FL2/FL3 是否出现，分别使用相机内建重设；用 ST、FL2、FL3 各拍一张新照片并回放。
+
+若选择了组合方案，还需人工确认：NTSC 下完整断电开机不再显示提示、原有 NTSC 帧率仍可选、PAL/NTSC 菜单能切换，并检查视频拍摄和回放。电脑端验证会额外核对两处提示代码，共8处运行区域；它不能代替这些实机功能检查。
 
 **完成以上步骤，FL2/FL3 菜单正常显示，ST、FL2、FL3 均能正常拍摄和回放，就完成了基本使用检查，可以结束操作。无需为了日常使用再次连接 Mac。** 保留整个 `A7C2-work` 文件夹。
 

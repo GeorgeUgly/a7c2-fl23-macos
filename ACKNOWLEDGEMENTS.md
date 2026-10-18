@@ -8,6 +8,8 @@
 
 Mac 适配层通过 Python 继承与会话替换调用固定上游实现，不修改下载的上游文件。新增部分包括：macOS 存储枚举与接口接管、句柄所有权、异常中断处理、备份落盘与核验、CLI 阶段限制、连接返回状态以及测试/文档。`workflow.py` 的准备流程改编自上游 `app.py`，相应原作者 MIT 声明随仓库保留。
 
+NTSC 开机提示可选补丁的两处条件定位和局部分支实验在本项目独立完成。组合安装/恢复模块仍基于上述固定上游 `installer.c`，扩展两个精确窗口；组合运行状态模块基于上游 `runtime.c` 和 `probe.c`，增加两处读取。`ntsc_module.py` 临时模块管理改编自上游 `app.Job.module`。这些派生实现保留原作者许可与贡献，不将安装器、USB协议或原有FL2/FL3研究归为本项目独立成果。
+
 ## Sony-PMCA-RE
 
 USB 服务协议来自 [ma1co/Sony-PMCA-RE](https://github.com/ma1co/Sony-PMCA-RE)，上游固定提交 `a82f5baaa8e9c3d9f28f94699e860fb2e48cc8e0`。其 MIT 许可见 [docs/Sony-PMCA-RE-MIT.txt](docs/Sony-PMCA-RE-MIT.txt)。本项目不宣称独立实现该协议。

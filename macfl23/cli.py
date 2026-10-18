@@ -74,6 +74,8 @@ def parser():
         command.add_argument('--workspace', required=True, type=Path)
         if name == 'prepare':
             command.add_argument('--backup-copy', type=Path, help='可选：另存一份副本；默认只保存工作目录中的一份备份')
+            command.add_argument('--disable-ntsc-warning', action='store_true',
+                                 help='实验性选项：同时取消 NTSC 开机提示（尚未实机验证）；默认只安装 FL2/FL3')
         if name in ('install', 'restore', 'diagnose'):
             command.add_argument('--battery-percent', required=True, type=int,
                                  help='相机屏幕显示的实际百分比，50–100；不能估算或填示例值')
@@ -134,6 +136,12 @@ def run_camera(args):
         original = transport.Session
         try:
             check_phase(args, job)
+            if args.action == 'install':
+                from . import ntsc
+                if ntsc.enabled(job.state):
+                    print('按已保存选择安装 FL2/FL3 + 取消 NTSC 开机提示；组合方案尚未实机验证。', flush=True)
+                else:
+                    print('按已保存选择仅安装 FL2/FL3。', flush=True)
             wake = subprocess.Popen(['/usr/bin/caffeinate', '-i', '-s', '-w', str(os.getpid())])
             transport.Session = MacSession
             MacSession.audit = lambda row: job.audit('mac_usb_session_exit', result=row)
@@ -141,7 +149,12 @@ def run_camera(args):
             if args.action == 'prepare':
                 if second and workspace.parent.stat().st_dev == second.parent.stat().st_dev:
                     print('提示：两份备份位于同一文件系统，不能抵御该磁盘故障；建议第二份放外置磁盘。')
-                job.prepare(second)
+                if getattr(args, 'disable_ntsc_warning', False):
+                    print('已选择 FL2/FL3 + 取消 NTSC 开机提示；此组合尚未实机验证。', flush=True)
+                    job.prepare(second, disable_ntsc_warning=True)
+                else:
+                    print('已选择仅 FL2/FL3；保留原有 NTSC 开机提示。', flush=True)
+                    job.prepare(second)
             elif args.action == 'install':
                 job.install(args.battery_percent)
             elif args.action == 'verify':
@@ -207,6 +220,8 @@ def main(argv=None):
         elif args.action == 'check':
             _, core, _ = load()
             core.assets()
+            from . import ntsc
+            ntsc.assets()
             print('套件源码和资产完整；未连接相机。')
         elif args.action == 'usb-status':
             if platform.system() != 'Darwin':
@@ -217,7 +232,10 @@ def main(argv=None):
         elif args.action == 'status':
             path = private_path(args.workspace, existing=True)
             state = json.loads((path / 'state.json').read_text())
-            keys = ('phase', 'failed_during', 'failed_action', 'last_error', 'exit_warning', 'functional_test')
+            from . import ntsc
+            ntsc.enabled(state)
+            state.setdefault('features', ['fl23'])
+            keys = ('phase', 'features', 'failed_during', 'failed_action', 'last_error', 'exit_warning', 'functional_test')
             print(json.dumps({key: state[key] for key in keys if key in state}, ensure_ascii=False, indent=2))
         else:
             return run_camera(args)

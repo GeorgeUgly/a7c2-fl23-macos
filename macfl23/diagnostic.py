@@ -147,6 +147,9 @@ def run_diagnosis(workspace):
     with camera_lock():
         source = MacJob(workspace)
         source.validate_candidates()
+        from . import ntsc
+        if ntsc.enabled(source.state):
+            raise ValueError('专项 diagnose 暂不支持 NTSC 实验组合；未开始USB操作，请保留工作目录供人工检查')
         if (source.state.get('phase'), source.state.get('failed_action'), source.state.get('failed_during')) != (
                 'needs_review', 'install', 'writing_settings'):
             raise ValueError('专项诊断仅适用于 install 在 writing_settings 停止的原始工作目录')

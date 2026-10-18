@@ -19,3 +19,5 @@ state.json
 *.so
 *.zip
 *-report.json
+!macfl23/assets/ntsc-installer.so
+!macfl23/assets/ntsc-runtime.so
