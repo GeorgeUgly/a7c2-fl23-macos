@@ -69,12 +69,12 @@ def parser():
     commands = result.add_subparsers(dest='action', required=True)
     for name in ('setup', 'check', 'usb-status'):
         commands.add_parser(name)
-    for name in ('status', 'prepare', 'install', 'verify', 'restore'):
+    for name in ('status', 'prepare', 'install', 'verify', 'restore', 'diagnose'):
         command = commands.add_parser(name)
         command.add_argument('--workspace', required=True, type=Path)
         if name == 'prepare':
             command.add_argument('--backup-copy', type=Path, help='可选：另存一份副本；默认只保存工作目录中的一份备份')
-        if name in ('install', 'restore'):
+        if name in ('install', 'restore', 'diagnose'):
             command.add_argument('--battery-percent', required=True, type=int,
                                  help='相机屏幕显示的实际百分比，50–100；不能估算或填示例值')
         if name in ('verify', 'restore'):
@@ -112,13 +112,16 @@ def run_camera(args):
         raise RuntimeError('相机操作只支持 macOS')
     if os.geteuid() != 0:
         raise RuntimeError('请在自己的终端使用 sudo 运行相机操作')
-    if args.action in ('install', 'restore') and not 50 <= args.battery_percent <= 100:
+    if args.action in ('install', 'restore', 'diagnose') and not 50 <= args.battery_percent <= 100:
         raise ValueError('相机实际电量必须至少50%；未开始USB操作')
     if args.action in ('verify', 'restore') and not args.cold_start_confirmed:
         raise ValueError('请先按文档完成冷启动，再使用 --cold-start-confirmed')
     if args.action == 'restore' and not args.st_selected:
         raise ValueError('恢复前须选择ST，再完成冷启动；需要 --st-selected')
     workspace = private_path(args.workspace, existing=args.action != 'prepare')
+    if args.action == 'diagnose':
+        from .diagnostic import run_diagnosis
+        return run_diagnosis(workspace)
     second = private_path(args.backup_copy) if args.action == 'prepare' and args.backup_copy else None
     from .session import MacSession, NormalReturnTimeout, transport
     from .workflow import MacJob
@@ -221,6 +224,6 @@ def main(argv=None):
         return 0
     except (Exception, KeyboardInterrupt) as exc:
         print('STOPPED: ' + simplify_message(exc), file=sys.stderr)
-        if args.action in ('prepare', 'install', 'verify', 'restore'):
+        if args.action in ('prepare', 'install', 'verify', 'restore', 'diagnose'):
             print('如已开始相机操作，请保留当前状态和工作目录，先检查结果，不要盲目重跑、断线或重启。', file=sys.stderr)
         return 1

@@ -118,6 +118,10 @@ sudo ./a7c2-mac verify \
 
 普通 USB 返回超时专门使用退出码 `2`，不伪装成完整成功；其他错误为 `1`，完全成功为 `0`。详见 [状态与失败处理](STATE-MACHINE.md)。
 
+## 安装停在 writing_settings 的专项诊断
+
+针对 `needs_review / failed_action=install / failed_during=writing_settings`，见 [实验性专项诊断](INTERRUPTED-INSTALL.md)。新增 `diagnose` 尚未真机验证，会进入服务模式并运行临时模块，不自动续写或恢复；请先阅读风险与适用条件。
+
 ## 恢复原版
 
 仅支持已知完整候选和本机身有效备份，不支持任意损坏映像救砖。先在相机选择 **ST**，正常关机、等灯灭、取电池约10秒再开机，接回影像传输（MSC）：
