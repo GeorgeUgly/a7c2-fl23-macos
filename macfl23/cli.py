@@ -14,6 +14,7 @@ import traceback
 
 from . import __version__
 from .engine import ROOT, setup, load
+from .messages import simplify_message
 
 
 @contextlib.contextmanager
@@ -219,7 +220,7 @@ def main(argv=None):
             return run_camera(args)
         return 0
     except (Exception, KeyboardInterrupt) as exc:
-        print('STOPPED: ' + str(exc), file=sys.stderr)
+        print('STOPPED: ' + simplify_message(exc), file=sys.stderr)
         if args.action in ('prepare', 'install', 'verify', 'restore'):
             print('如已开始相机操作，请保留当前状态和工作目录，先检查结果，不要盲目重跑、断线或重启。', file=sys.stderr)
         return 1

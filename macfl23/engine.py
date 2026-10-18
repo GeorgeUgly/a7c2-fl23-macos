@@ -89,4 +89,7 @@ def load():
     sys.path.insert(0, str(base))
     core = importlib.import_module('core')
     core.assets()
-    return importlib.import_module('app'), core, importlib.import_module('transport')
+    app = importlib.import_module('app')
+    from .messages import event
+    app.event = event
+    return app, core, importlib.import_module('transport')
