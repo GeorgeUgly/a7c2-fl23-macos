@@ -18,6 +18,7 @@ USB 服务协议来自 [ma1co/Sony-PMCA-RE](https://github.com/ma1co/Sony-PMCA-R
 
 - [lzh2016zzz/a7cr-fl23-research](https://github.com/lzh2016zzz/a7cr-fl23-research/tree/43ba74441c8f10459ade41e84a379ad8005e6ef4)：A7CR FL2/FL3 的移植、参数、标签与 WBI 研究参考。本项目没有直接套用 A7CR 偏移。
 - [YuuLuo/a7c2-service-preload](https://github.com/YuuLuo/a7c2-service-preload/tree/1619f938663a36d41e72302a8cfee89a0f6acd1a)：A7C II 服务模式研究参考，原文档许可为 CC BY-SA 4.0。本仓库仅链接说明来源，未复制该项目文档。
+- [ma1co/fwtool.py PR #52](https://github.com/ma1co/fwtool.py/pull/52)，上游注明的固定提交为 `3955d7890fc38daf942bb52827599bfe35de4a14`：官方固件离线解包分析参考。本项目运行时不调用或附带该工具。
 - Sony A7C II 2.01 和 Alpha 1 II 4.00 是上游程序/色彩研究的数据来源。Sony 商标与固件资料权利仍归权利人所有。
 
 本项目与上述作者及 Sony 无官方合作或背书关系。
