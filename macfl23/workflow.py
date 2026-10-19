@@ -63,6 +63,42 @@ class MacJob(app.Job):
             expected = self.final_hashes()
         return super().files(session, expected)
 
+    def review_failed_verify_before_cold_start(self):
+        """Permit only a new read-only verify, preserving the failed evidence."""
+        from datetime import datetime
+        from .finish import require, evidence_file
+        state = self.state
+        require(integrated.enabled(state) and
+                (state.get('phase'), state.get('failed_action'), state.get('failed_during')) ==
+                ('needs_review', 'verify', 'installed_pending_cold_start') and
+                state.get('last_error') == 'ValueError: 运行状态与所选组合不符；保留状态，检查冷启动结果',
+                '不符合未冷启动时只读验证失败的专项阶段')
+        rows = state.get('journal', [])
+        starts = [i for i,r in enumerate(rows) if r.get('step') == 'host_full_file_readback_verified']
+        require(bool(starts), '缺少前次完整程序读回')
+        tail = rows[starts[-1]:]
+        require([r.get('step') for r in tail] == ['host_full_file_readback_verified', 'native_about_to_run',
+                'native_verified', 'mac_usb_session_exit'] and tail[0].get('hashes') == self.final_hashes(),
+                '前次只读验证步骤不匹配')
+        require(all((r.get('module'),r.get('mode')) == ('runtime',None) for r in tail[1:3]) and
+                tail[-1].get('result') == {'service_exit_request':'sent','normal_usb_returned':True,'errors':[]},
+                '前次验证不是正常返回的只读运行检查')
+        path = evidence_file(self.root, 'runtime.bin', datetime.fromisoformat(tail[1]['time']),
+                             datetime.fromisoformat(tail[-1]['time']))
+        runtime = integrated.select(state).parse_native(core,'runtime',path.read_bytes())
+        require(runtime == tail[2].get('result'), '前次运行报告与审计不符')
+        old = core.patch_program((self.root/'original/appFw.so.bin').read_bytes(),0)
+        new = (self.root/'candidate/appFw.so').read_bytes()
+        stale = 0
+        for span in runtime['spans']:
+            start,n = span['offset'],span['length']
+            old_hex,new_hex = old[start:start+n].hex(),new[start:start+n].hex()
+            require(span['disk'] == new_hex and span['memory'] in (old_hex,new_hex),
+                    '前次运行报告含未知程序内容')
+            stale += span['memory'] != new_hex
+        require(stale > 0, '前次报告并非已知旧内容仍在内存')
+        return {'stale_regions':stale,'previous_session_returned_normally':True,'operation':'read_only_verify'}
+
     def verify(self):
         self.load()
         if integrated.enabled(self.state) and self.state['phase'] in (

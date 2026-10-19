@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "camera_model": "ILCE-7CM2",
+  "base_firmware": "2.01",
+  "profile": [
+    "fl23",
+    "mr_card_compat",
+    "no_ntsc_notice_v2"
+  ],
+  "devices_tested": 1,
+  "operation": "legacy_fl23_upgrade_then_explicit_reviewed_wbi_finish_and_cold_start_verify",
+  "ap_window_writes": 3,
+  "cp_program_rewritten": false,
+  "settings_written_or_saved_by_upgrade_or_finish": false,
+  "upgrade_stopped_for_unknown_live_field": true,
+  "unknown_field": "chip0/0x02770015",
+  "field_semantics": "unconfirmed",
+  "first_finish_precheck_stopped_without_wbi": true,
+  "extra_time_field_exception_explicitly_selected": true,
+  "wbi_preflight_and_drop_then_mode_zero_verified": true,
+  "physical_cold_start_user_confirmed": true,
+  "full_ap_cp_readback_verified": true,
+  "current_saved_direct_targets_and_attributes_verified": true,
+  "runtime_memory_and_disk_regions_verified": 9,
+  "normal_usb_returned": true,
+  "result": "verified_after_cold_start",
+  "manual_functional_tests": "pending_user_report",
+  "first_install_and_stock_restore_tested": false,
+  "default_profile_hardware_upgrade_tested": false,
+  "original_programs_settings_identity_and_logs": "private_not_included"
+}

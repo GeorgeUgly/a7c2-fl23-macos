@@ -40,3 +40,9 @@ CLI 再根据当前阶段和已保存证据确认完整结果，记录 `prepared
 ## 已知 writing_settings 停止点的专项收尾
 
 `finish-install --accept-experimental-finish` 仅处理完整历史证据与实时状态均匹配的原FL2/FL3、固定 +60 失败。详见 [适用条件与风险](INTERRUPTED-INSTALL.md#可选已知停止点的实验性-wbi-收尾)。它不修改计数白名单、不重写程序或保存参数。写WBI之前创建持久化尝试标记并进入 finishing_snapshot；重复尝试一律拒绝。完成后才进入 installed_pending_cold_start（或已完成主体的USB未确认变体）；WBI结果不明则 needs_review / failed_action=finish-install，不允许再次自动续写。此新增路径仅有离线测试，尚无实机结果。
+
+## 新版追加升级的专项收尾与只读重验
+
+`finish-upgrade --accept-reviewed-upgrade-finish` 只处理新版本 `upgrade_programs_written` 的历史固定+60停止点；条件和未知字段风险见 [UPGRADE-FINISH.md](UPGRADE-FINISH.md)。写WBI前创建独立的 `upgrade-finish-attempt.private.json`，经审查后才进入 `finishing_upgrade_snapshot`。成功状态为 `installed_pending_cold_start`；WBI结果未知仍停止，不允许重复。额外时间例外必须经使用者另外明确选择，不能默认启用。
+
+若在尚未实际冷启动时误跑新版 `verify`，以运行区域不匹配停止为 `needs_review / verify / installed_pending_cold_start`，只允许在完成专项离线审查和真实取电池后明确再运行一次 `verify --cold-start-confirmed`。审查要求前次完整目标读回、唯一原生runtime报告、磁盘全为目标窗口、内存仅为已知旧或新窗口、正常MSC返回；未知内容或其他错误拒绝。原失败记录保留，不伪造安装阶段，不重装程序，不再处理WBI。新的只读验证成功才清除当前失败标识并记为 `verified_after_cold_start`。

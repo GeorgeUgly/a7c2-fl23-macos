@@ -69,7 +69,7 @@ def parser():
     commands = result.add_subparsers(dest='action', required=True)
     for name in ('setup', 'check', 'usb-status'):
         commands.add_parser(name)
-    for name in ('status', 'prepare', 'prepare-upgrade', 'upgrade', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
+    for name in ('status', 'prepare', 'prepare-upgrade', 'upgrade', 'install', 'verify', 'restore', 'diagnose', 'finish-install', 'finish-upgrade'):
         command = commands.add_parser(name)
         command.add_argument('--workspace', required=True, type=Path)
         if name == 'prepare-upgrade':
@@ -82,8 +82,8 @@ def parser():
             command.add_argument('--backup-copy', type=Path, help='可选：另存一份副本；默认只保存工作目录中的一份备份')
         if name in ('prepare', 'prepare-upgrade'):
             command.add_argument('--disable-ntsc-warning', action='store_true',
-                                 help='实验性选项：同时取消 NTSC 开机提示（尚未实机验证）；默认只安装 FL2/FL3')
-        if name in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install'):
+                                 help='实验性选项：同时取消 NTSC 开机提示；实际提示效果仍需实测，默认只安装 FL2/FL3')
+        if name in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install', 'finish-upgrade'):
             command.add_argument('--battery-percent', required=True, type=int,
                                  help='相机屏幕显示的实际百分比，50–100；不能估算或填示例值')
         if name in ('verify', 'upgrade', 'restore'):
@@ -92,6 +92,11 @@ def parser():
         if name == 'finish-install':
             command.add_argument('--accept-experimental-finish', action='store_true',
                                  help='明确接受未实机验证的专项收尾及已报告 +60 差异审查风险')
+        if name == 'finish-upgrade':
+            command.add_argument('--accept-reviewed-upgrade-finish', action='store_true',
+                                 help='显式接受升级后未保存+60差异的有限审查及实验性WBI收尾')
+            command.add_argument('--accept-unconfirmed-live-time-field', action='store_true',
+                                 help='另行接受未知字段风险；仅容许当前字段增量与经过秒数相符，保存设置仍须完全一致')
         if name == 'restore':
             command.add_argument('--st-selected', action='store_true',
                                  help='冷启动前已将外观选为ST')
@@ -103,6 +108,10 @@ def check_phase(args, job):
         return
     job.validate_candidates()
     phase = job.state['phase']
+    if args.action == 'verify' and phase == 'needs_review':
+        review = job.review_failed_verify_before_cold_start()
+        job.audit('explicit_read_only_reverify_after_cold_start', review=review)
+        return
     allowed = {
         'install': {'prepared', 'prepared_usb_unconfirmed'},
         'upgrade': {'upgrade_prepared'},
@@ -130,15 +139,20 @@ def run_camera(args):
         raise RuntimeError('相机操作只支持 macOS')
     if os.geteuid() != 0:
         raise RuntimeError('请在自己的终端使用 sudo 运行相机操作')
-    if args.action in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install') and not 50 <= args.battery_percent <= 100:
+    if args.action in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install', 'finish-upgrade') and not 50 <= args.battery_percent <= 100:
         raise ValueError('相机实际电量必须至少50%；未开始USB操作')
     if args.action in ('verify', 'upgrade', 'restore') and not args.cold_start_confirmed:
         raise ValueError('请先按文档完成冷启动，再使用 --cold-start-confirmed')
     if args.action == 'restore' and not args.st_selected:
         raise ValueError('恢复前须选择ST，再完成冷启动；需要 --st-selected')
     if args.action == 'upgrade' and not args.accept_experimental_upgrade:
-        raise ValueError('整合升级尚未实机验证；需要 --accept-experimental-upgrade')
+        raise ValueError('整合升级仍为实验流程；需要 --accept-experimental-upgrade')
     workspace = private_path(args.workspace, existing=args.action != 'prepare')
+    if args.action == 'finish-upgrade':
+        if not args.accept_reviewed_upgrade_finish:
+            raise ValueError('需明确接受升级差异审查及实验性WBI收尾')
+        from .finish_upgrade import run_finish_upgrade
+        return run_finish_upgrade(workspace, accept_live_time_field=args.accept_unconfirmed_live_time_field)
     if args.action == 'finish-install':
         if not args.accept_experimental_finish:
             raise ValueError('专项收尾尚未真机验证；需显式指定 --accept-experimental-finish')
@@ -191,7 +205,7 @@ def run_camera(args):
                 restored = job.state['phase'].startswith('restored_')
                 job.verify()
                 job.save('restored_verified_after_cold_start' if restored else 'verified_after_cold_start',
-                         functional_test='manual_check_required')
+                         functional_test='manual_check_required', failed_action=None, failed_during=None, last_error=None)
             else:
                 job.restore(args.battery_percent)
             job.save(job.state['phase'], normal_usb_returned=True, exit_warning=None)
@@ -284,6 +298,6 @@ def main(argv=None):
         return 0
     except (Exception, KeyboardInterrupt) as exc:
         print('STOPPED: ' + simplify_message(exc), file=sys.stderr)
-        if args.action in ('prepare', 'upgrade', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
+        if args.action in ('prepare', 'upgrade', 'install', 'verify', 'restore', 'diagnose', 'finish-install', 'finish-upgrade'):
             print('如已开始相机操作，请保留当前状态和工作目录，先检查结果，不要盲目重跑、断线或重启。', file=sys.stderr)
         return 1

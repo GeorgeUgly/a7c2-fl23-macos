@@ -1,6 +1,6 @@
 # 旧版 FL2/FL3 升级到两类新版本
 
-**尚未实机验证。** 此入口供明确接受实验风险的用户测试；不代表已验证可恢复或不会无法开机。原版 2.01、从未改装的机身使用[主 README 的首次安装流程](../README.md)，不用本页升级入口。
+**仍为实验流程。** 新版组合已在一台机身上经[专项WBI收尾](UPGRADE-FINISH.md)后通过冷启动程序、参数和9处运行区域核验；自动升级中出现的未知字段停止原因仍未根治。默认保留提示版的实机升级、恢复和新版功能试拍尚未验证。原版 2.01、从未改装的机身使用[主 README 的首次安装流程](../README.md)，不用本页升级入口。
 
 ## 适用范围与选择
 
@@ -57,4 +57,4 @@ sudo ./a7c2-mac verify --workspace "$HOME/Pictures/A7C2-upgrade" --cold-start-co
 
 成功升级后仍使用新目录，选择 ST 并完成冷启动，再按主教程执行 `restore --battery-percent ACTUAL_PERCENT --st-selected --cold-start-confirmed`。它对所选版本的完整指纹和41/43窗口做反向恢复，同时恢复自己的原始目标设置并处理快照。
 
-恢复完成后再次冷启动，新版目录的 `verify --cold-start-confirmed` 会核验原版完整程序、原始目标设置及7/9个运行区域，成功阶段为 `restored_verified_after_cold_start`。这些代码和离线回归已补齐，真实机身上的升级、恢复、冷启动及拍摄尚未验证。
+恢复完成后再次冷启动，新版目录的 `verify --cold-start-confirmed` 会核验原版完整程序、原始目标设置及7/9个运行区域，成功阶段为 `restored_verified_after_cold_start`。真实恢复尚未验证；组合追加升级的有限实机结果与剩余边界见[验证记录](VALIDATION.md)。
