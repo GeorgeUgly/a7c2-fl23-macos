@@ -25,7 +25,17 @@
   "runtime_memory_and_disk_regions_verified": 9,
   "normal_usb_returned": true,
   "result": "verified_after_cold_start",
-  "manual_functional_tests": "pending_user_report",
+  "manual_functional_tests": {
+    "st_fl2_fl3_new_photo_capture_and_playback": "user_confirmed_pass",
+    "fl2_fl3_card_preset_save_and_recall": {
+      "M1": "user_confirmed_pass",
+      "M2": "user_confirmed_pass",
+      "M3": "user_confirmed_pass",
+      "M4": "user_confirmed_pass"
+    },
+    "ntsc_boot_notice": "user_confirmed_expected_skip",
+    "pal_ntsc_switching_and_video": "not_tested"
+  },
   "first_install_and_stock_restore_tested": false,
   "default_profile_hardware_upgrade_tested": false,
   "original_programs_settings_identity_and_logs": "private_not_included"

@@ -82,7 +82,7 @@ def parser():
             command.add_argument('--backup-copy', type=Path, help='可选：另存一份副本；默认只保存工作目录中的一份备份')
         if name in ('prepare', 'prepare-upgrade'):
             command.add_argument('--disable-ntsc-warning', action='store_true',
-                                 help='实验性选项：同时取消 NTSC 开机提示；实际提示效果仍需实测，默认只安装 FL2/FL3')
+                                 help='实验性选项：同时取消 NTSC 开机提示；仅单台组合版实测通过，默认只安装 FL2/FL3')
         if name in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install', 'finish-upgrade'):
             command.add_argument('--battery-percent', required=True, type=int,
                                  help='相机屏幕显示的实际百分比，50–100；不能估算或填示例值')
