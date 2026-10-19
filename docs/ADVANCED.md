@@ -97,7 +97,7 @@ sudo ./a7c2-mac verify \
   --cold-start-confirmed
 ```
 
-`--cold-start-confirmed` 表示你已实际完成上述断电步骤，不会替你操作相机。验证会读取完整程序、参数及六处运行区域，上传临时诊断模块，不重新安装。成功为 `verified_after_cold_start`。实际颜色、其他拍摄模式及长期稳定性仍需人工验证。
+`--cold-start-confirmed` 表示你已实际完成上述断电步骤，不会替你操作相机。验证会读取完整程序、参数及所选版本的运行区域：新版 FL2/FL3 为7处，带跳过提示为9处；旧目录仍按原6/8处处理。它上传临时诊断模块，不重新安装。成功为 `verified_after_cold_start`。实际颜色、其他拍摄模式及长期稳定性仍需人工验证。
 
 ### 查看状态
 

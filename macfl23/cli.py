@@ -69,17 +69,24 @@ def parser():
     commands = result.add_subparsers(dest='action', required=True)
     for name in ('setup', 'check', 'usb-status'):
         commands.add_parser(name)
-    for name in ('status', 'prepare', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
+    for name in ('status', 'prepare', 'prepare-upgrade', 'upgrade', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
         command = commands.add_parser(name)
         command.add_argument('--workspace', required=True, type=Path)
+        if name == 'prepare-upgrade':
+            command.add_argument('--source-workspace', required=True, type=Path,
+                                 help='已完成冷启动验证的原 FL2/FL3 目录；只读保留原目录')
+        if name == 'upgrade':
+            command.add_argument('--accept-experimental-upgrade', action='store_true',
+                                 help='明确接受整合升级尚未实机验证；仅支持原 FL2/FL3 精确指纹')
         if name == 'prepare':
             command.add_argument('--backup-copy', type=Path, help='可选：另存一份副本；默认只保存工作目录中的一份备份')
+        if name in ('prepare', 'prepare-upgrade'):
             command.add_argument('--disable-ntsc-warning', action='store_true',
                                  help='实验性选项：同时取消 NTSC 开机提示（尚未实机验证）；默认只安装 FL2/FL3')
-        if name in ('install', 'restore', 'diagnose', 'finish-install'):
+        if name in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install'):
             command.add_argument('--battery-percent', required=True, type=int,
                                  help='相机屏幕显示的实际百分比，50–100；不能估算或填示例值')
-        if name in ('verify', 'restore'):
+        if name in ('verify', 'upgrade', 'restore'):
             command.add_argument('--cold-start-confirmed', action='store_true',
                                  help='已正常关机、等存取灯灭、取出电池约10秒、重新开机')
         if name == 'finish-install':
@@ -98,11 +105,17 @@ def check_phase(args, job):
     phase = job.state['phase']
     allowed = {
         'install': {'prepared', 'prepared_usb_unconfirmed'},
+        'upgrade': {'upgrade_prepared'},
         'verify': {'installed_pending_cold_start', 'installed_pending_cold_start_usb_unconfirmed',
                    'verified_after_cold_start', 'verified_after_cold_start_usb_unconfirmed'},
         'restore': {'installed_pending_cold_start', 'installed_pending_cold_start_usb_unconfirmed',
                     'verified_after_cold_start', 'verified_after_cold_start_usb_unconfirmed'},
     }
+    if args.action == 'verify':
+        from . import integrated
+        if integrated.enabled(job.state):
+            allowed['verify'] |= {'restored_pending_cold_start', 'restored_pending_cold_start_usb_unconfirmed',
+                                  'restored_verified_after_cold_start', 'restored_verified_after_cold_start_usb_unconfirmed'}
     if phase not in allowed[args.action]:
         raise ValueError('当前阶段不允许此操作：' + phase + '；未知结果不允许自动续写')
     if args.action == 'install' and phase == 'prepared_usb_unconfirmed':
@@ -117,12 +130,14 @@ def run_camera(args):
         raise RuntimeError('相机操作只支持 macOS')
     if os.geteuid() != 0:
         raise RuntimeError('请在自己的终端使用 sudo 运行相机操作')
-    if args.action in ('install', 'restore', 'diagnose', 'finish-install') and not 50 <= args.battery_percent <= 100:
+    if args.action in ('install', 'upgrade', 'restore', 'diagnose', 'finish-install') and not 50 <= args.battery_percent <= 100:
         raise ValueError('相机实际电量必须至少50%；未开始USB操作')
-    if args.action in ('verify', 'restore') and not args.cold_start_confirmed:
+    if args.action in ('verify', 'upgrade', 'restore') and not args.cold_start_confirmed:
         raise ValueError('请先按文档完成冷启动，再使用 --cold-start-confirmed')
     if args.action == 'restore' and not args.st_selected:
         raise ValueError('恢复前须选择ST，再完成冷启动；需要 --st-selected')
+    if args.action == 'upgrade' and not args.accept_experimental_upgrade:
+        raise ValueError('整合升级尚未实机验证；需要 --accept-experimental-upgrade')
     workspace = private_path(args.workspace, existing=args.action != 'prepare')
     if args.action == 'finish-install':
         if not args.accept_experimental_finish:
@@ -135,7 +150,11 @@ def run_camera(args):
     second = private_path(args.backup_copy) if args.action == 'prepare' and args.backup_copy else None
     from .session import MacSession, NormalReturnTimeout, transport
     from .workflow import MacJob
-    job = MacJob(workspace)
+    if args.action == 'upgrade':
+        from .upgrade import UpgradeJob
+        job = UpgradeJob(workspace)
+    else:
+        job = MacJob(workspace)
     owned = [workspace] + ([second] if second else [])
     with camera_lock():
         previous_umask = os.umask(0o077)
@@ -165,9 +184,14 @@ def run_camera(args):
                     job.prepare(second)
             elif args.action == 'install':
                 job.install(args.battery_percent)
+            elif args.action == 'upgrade':
+                print('实验性升级：按所选版本追加固定 AP 窗口，不重写拍摄设置；完成后必须冷启动验证。', flush=True)
+                job.upgrade(args.battery_percent)
             elif args.action == 'verify':
+                restored = job.state['phase'].startswith('restored_')
                 job.verify()
-                job.save('verified_after_cold_start', functional_test='manual_check_required')
+                job.save('restored_verified_after_cold_start' if restored else 'verified_after_cold_start',
+                         functional_test='manual_check_required')
             else:
                 job.restore(args.battery_percent)
             job.save(job.state['phase'], normal_usb_returned=True, exit_warning=None)
@@ -187,7 +211,7 @@ def run_camera(args):
             job.save(phase, normal_usb_returned=False, exit_warning=str(exc))
             print('RESULT: ' + phase, flush=True)
             print('操作主体已验证，但普通USB返回未确认。没有自动重试写入。')
-            if args.action in ('install', 'restore'):
+            if args.action in ('install', 'upgrade', 'restore'):
                 print('相机无错误且存取灯熄灭后，按文档正常关机并取电池冷启动；不要重跑安装。')
             elif args.action == 'prepare':
                 print('尚未写入固件。先确认相机回到影像传输（MSC），再明确运行 install。')
@@ -230,7 +254,17 @@ def main(argv=None):
             core.assets()
             from . import ntsc
             ntsc.assets()
+            from . import integrated
+            integrated.BASE.assets()
+            integrated.COMBINED.assets()
             print('套件源码和资产完整；未连接相机。')
+        elif args.action == 'prepare-upgrade':
+            from .upgrade import prepare_upgrade
+            source = private_path(args.source_workspace, existing=True)
+            target = private_path(args.workspace)
+            if source == target or source in target.parents or target in source.parents:
+                raise ValueError('升级目录须与原目录分开，不能互相包含')
+            prepare_upgrade(source, target, args.disable_ntsc_warning)
         elif args.action == 'usb-status':
             if platform.system() != 'Darwin':
                 raise RuntimeError('USB系统信息仅支持macOS')
@@ -250,6 +284,6 @@ def main(argv=None):
         return 0
     except (Exception, KeyboardInterrupt) as exc:
         print('STOPPED: ' + simplify_message(exc), file=sys.stderr)
-        if args.action in ('prepare', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
+        if args.action in ('prepare', 'upgrade', 'install', 'verify', 'restore', 'diagnose', 'finish-install'):
             print('如已开始相机操作，请保留当前状态和工作目录，先检查结果，不要盲目重跑、断线或重启。', file=sys.stderr)
         return 1

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from macfl23 import workflow as w
-from macfl23 import cli
+from macfl23 import cli, integrated
 
 
 class WorkflowTests(unittest.TestCase):
@@ -40,6 +40,7 @@ class WorkflowTests(unittest.TestCase):
                  patch.object(w.core, 'backup_records', return_value=records), \
                  patch.object(w.core, 'ORIGINAL', [w.core.sha(b'AP'), w.core.sha(b'CP')]), \
                  patch.object(w.core, 'patch_program', side_effect=lambda raw, chip, reverse=False: raw), \
+                 patch.object(integrated.Profile, 'patch_ap', side_effect=lambda raw, reverse=False: raw), \
                  patch.object(job, 'module', side_effect=native) as module, \
                  contextlib.redirect_stdout(io.StringIO()):
                 job.prepare(root / 'second')
@@ -86,6 +87,7 @@ class WorkflowTests(unittest.TestCase):
                  patch.object(w.core, 'backup_records', return_value=records), \
                  patch.object(w.core, 'ORIGINAL', [w.core.sha(b'AP'), w.core.sha(b'CP')]), \
                  patch.object(w.core, 'patch_program', side_effect=lambda raw, chip, reverse=False: raw), \
+                 patch.object(integrated.Profile, 'patch_ap', side_effect=lambda raw, reverse=False: raw), \
                  patch.object(job, 'module'), contextlib.redirect_stdout(io.StringIO()):
                 job.prepare()
                 job.load()

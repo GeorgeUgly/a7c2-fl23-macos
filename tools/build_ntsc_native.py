@@ -38,10 +38,10 @@ def validate_elf(raw, name, entries):
                    for r in section.iter_relocations()]
     if any(r['r_info_type'] != 1027 for r in relocations):
         raise ValueError('Unexpected relocation type')
-    expected = 84 if name == 'installer' else 0
+    expected = 2 * len(entries) if name in ('installer', 'upgrade') else 0
     if len(relocations) != expected:
-        raise ValueError('Unexpected relocation count')
-    if name == 'installer':
+        raise ValueError(f'Unexpected relocation count for {name}: {len(relocations)}; expected {expected}')
+    if name in ('installer', 'upgrade'):
         def read_va(address, size):
             for segment in elf.iter_segments():
                 if (segment['p_type'] == 'PT_LOAD' and segment['p_vaddr'] <= address

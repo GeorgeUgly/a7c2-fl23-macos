@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "features": [
+    "fl23",
+    "mr_card_compat"
+  ],
+  "compiler": "Zig 0.13.0",
+  "status": "offline_verified_hardware_unverified",
+  "files": {
+    "fl23-v2-installer.so": "f788fc355f25b845b26337dc2e28f5a565797126b9d4607851ec2fc0d0d0e4b5",
+    "fl23-v2-upgrade.so": "9923fdcc67fe2bfdb6a9220f5f08154813b1cc9849f2909abe00cd83f694f16d",
+    "fl23-v2-runtime.so": "50869aa9998d4455b5903b8cee53becaab1bbd88783667612ed9593850e1aa26"
+  },
+  "elf": {
+    "fl23-v2-installer.so": {
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "needed_libraries": [],
+      "undefined_symbols": [],
+      "relative_relocations": 82
+    },
+    "fl23-v2-upgrade.so": {
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "needed_libraries": [],
+      "undefined_symbols": [],
+      "relative_relocations": 2
+    },
+    "fl23-v2-runtime.so": {
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "needed_libraries": [],
+      "undefined_symbols": [],
+      "relative_relocations": 0
+    }
+  },
+  "repeat_build_identical": true
+}

@@ -1,0 +1,356 @@
+{
+  "status": "host_native_installer_fixture_tests_passed",
+  "camera_io": false,
+  "cases": [
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "upgrade",
+      "case": "preflight",
+      "mode": 0,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "upgrade",
+      "case": "install",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 1,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "upgrade",
+      "case": "restore",
+      "mode": 2,
+      "passed": true,
+      "firmware_write_calls": 1,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "upgrade",
+      "case": "wrong_source",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -84,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "upgrade",
+      "case": "inode_changed",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -116,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "upgrade",
+      "case": "partial_write",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 2,
+      "readonly_restored": true,
+      "status": -5,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "installer",
+      "case": "preflight",
+      "mode": 0,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "installer",
+      "case": "install",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 41,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "installer",
+      "case": "restore",
+      "mode": 2,
+      "passed": true,
+      "firmware_write_calls": 41,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "installer",
+      "case": "wrong_source",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -84,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "installer",
+      "case": "inode_changed",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -116,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat"
+      ],
+      "module": "installer",
+      "case": "partial_write",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 42,
+      "readonly_restored": true,
+      "status": -5,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "upgrade",
+      "case": "preflight",
+      "mode": 0,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "upgrade",
+      "case": "install",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 3,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "upgrade",
+      "case": "restore",
+      "mode": 2,
+      "passed": true,
+      "firmware_write_calls": 3,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "upgrade",
+      "case": "wrong_source",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -84,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "upgrade",
+      "case": "inode_changed",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -116,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "upgrade",
+      "case": "partial_write",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 4,
+      "readonly_restored": true,
+      "status": -5,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "installer",
+      "case": "preflight",
+      "mode": 0,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "installer",
+      "case": "install",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 43,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "installer",
+      "case": "restore",
+      "mode": 2,
+      "passed": true,
+      "firmware_write_calls": 43,
+      "readonly_restored": true,
+      "status": 0,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "installer",
+      "case": "wrong_source",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -84,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "installer",
+      "case": "inode_changed",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 0,
+      "readonly_restored": true,
+      "status": -116,
+      "rollback_status": 0
+    },
+    {
+      "profile": [
+        "fl23",
+        "mr_card_compat",
+        "no_ntsc_notice_v2"
+      ],
+      "module": "installer",
+      "case": "partial_write",
+      "mode": 1,
+      "passed": true,
+      "firmware_write_calls": 44,
+      "readonly_restored": true,
+      "status": -5,
+      "rollback_status": 0
+    }
+  ],
+  "source_sha256": "62925a0461b896eb25ad6c7abbff908a7bfe27593526a9ace01cfb1f0770f945",
+  "limit": "Pinned installer C runs on host with only syscall/entry substitution; not a Linux kernel, AArch64 execution, real ext2 or hardware recovery test."
+}

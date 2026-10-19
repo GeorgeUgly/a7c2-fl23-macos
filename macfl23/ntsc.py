@@ -15,13 +15,15 @@ SPANS = [(0x3528804, 112), (0x4b2ed19, 2), (0x59892b8, 40),
          (0x5989370, 40), (0x4b4a5e4, 12), (0x4b3b544, 12),
          (0x20617b0, 4), (0x2061d14, 4)]
 ASSETS = Path(__file__).resolve().parent / 'assets'
+PREFIX = 'ntsc-'
 
 
 def enabled(state):
+    from .integrated import FEATURES as INTEGRATED_FEATURES, BASE
     features = state.get('features', ['fl23'])
-    if features not in (['fl23'], FEATURES):
+    if features not in (['fl23'], FEATURES, BASE.FEATURES, INTEGRATED_FEATURES):
         raise ValueError('未知功能组合；不会操作相机')
-    return features == FEATURES
+    return features in (FEATURES, INTEGRATED_FEATURES)
 
 
 def patch_ap(raw, reverse=False):

@@ -1,0 +1,39 @@
+{
+  "format": 1,
+  "features": [
+    "fl23",
+    "mr_card_compat",
+    "no_ntsc_notice_v2"
+  ],
+  "compiler": "Zig 0.13.0",
+  "status": "offline_verified_hardware_unverified",
+  "files": {
+    "integrated-installer.so": "8cdb11765e8f2e8c77b119073ccc05efdabd000cdf72b92aa92cab6e23271f64",
+    "integrated-upgrade.so": "0357070f84e141be8aa889207e8d468a068d13e01873f4e88ab4a50cfaa85fa1",
+    "integrated-runtime.so": "ed3009d9dd67f8d4f127f33f5e510dcc7780c8c5e0afe9bf07b03bfa0d0d5614"
+  },
+  "elf": {
+    "integrated-installer.so": {
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "needed_libraries": [],
+      "undefined_symbols": [],
+      "relative_relocations": 86
+    },
+    "integrated-upgrade.so": {
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "needed_libraries": [],
+      "undefined_symbols": [],
+      "relative_relocations": 6
+    },
+    "integrated-runtime.so": {
+      "machine": "AArch64",
+      "type": "ET_DYN",
+      "needed_libraries": [],
+      "undefined_symbols": [],
+      "relative_relocations": 0
+    }
+  },
+  "repeat_build_identical": true
+}

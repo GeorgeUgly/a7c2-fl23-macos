@@ -20,9 +20,9 @@
 
 ### 安装内容选择
 
-默认仅 FL2/FL3。用户明确选择同时取消 NTSC 开机提示时，在下文 `prepare` 命令追加 `--disable-ntsc-warning`，并说明组合方案尚未实机验证；不要默认启用。选择保存在工作目录，后续安装、8处运行区域验证和恢复自动使用对应的精确指纹与模块。
+面向用户只有两种：默认 FL2/FL3（内置 M1–M4 修复、保留提示），或显式加 `--disable-ntsc-warning` 的 FL2/FL3＋跳过 NTSC 提示（同样内置修复）。新目录分别保存 `["fl23", "mr_card_compat"]` 或额外包含 `"no_ntsc_notice_v2"`；安装、7/9区域验证及恢复自动沿用。
 
-不修改既有工作目录的 `features` 来切换。旧工作目录默认为仅 FL2/FL3；已安装机身不能重复 prepare/install 追加此功能。当前专项 `diagnose` 只支持原 FL2/FL3 路径。详细说明见 [研究记录](../research/ntsc-boot-notice/README.md)。
+原版 2.01 使用下文首次安装流程，固定完整指纹校验针对公共固件版本，不是针对某台机身。已安装旧版 FL2/FL3 且有已完成冷启动验证的工作目录时，按 [UPGRADE.md](UPGRADE.md) 创建独立升级目录；不要重复首次安装或手改状态。旧版 NTSC 的追加升级尚不支持。专项 diagnose/finish-install 只处理旧版明确停止点。
 
 ### 1. 确认条件与已有状态
 
@@ -84,7 +84,7 @@ sudo ./a7c2-mac verify --workspace "$HOME/Pictures/A7C2-work" --cold-start-confi
 
 ## 已安装机身
 
-已有 `installed_pending_cold_start` 或 `verified_after_cold_start` 工作目录时，按实际冷启动状态执行 `verify`。不要再次 `prepare` 或 `install`。没有原始备份且机身已改装时，停止并说明；不能拿其他机身的备份补齐。
+已有 `installed_pending_cold_start` 或 `verified_after_cold_start` 工作目录时，按实际冷启动状态执行 `verify`；显式选择更新到两类新版本时使用独立升级流程。不要再次 `prepare` 或 `install`。没有原始备份且机身已改装时，停止并说明；不能拿其他机身的备份补齐。
 
 ## 出错时
 

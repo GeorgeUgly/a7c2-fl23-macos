@@ -1,0 +1,170 @@
+{
+  "status": "offline_two_profiles_passed_hardware_unverified",
+  "camera_io": false,
+  "profiles": {
+    "fl23-v2-": {
+      "ap_sha256": "22137afdb226ed2a5c0804eb95e802f4d697955fa793c7661e6b14bd48127d89",
+      "cp_sha256": "60a9de1a0636c7f6b5b98607a4d25eeb48634e25294f632743a6d256e583b370",
+      "exact_reverse": true,
+      "mr_validator": {
+        "elf_section_and_relocation_crosscheck": true,
+        "native_tables_readonly_in_emulator": true,
+        "callee_saved_registers_and_stack_preserved": true,
+        "guest_writes_restricted_to_stack": true,
+        "scalar_comparisons": 14040,
+        "changed_decisions": 108,
+        "original_look_values_0_through_9_unchanged": true,
+        "out_of_range_values_still_rejected": true,
+        "parameters_checked_per_full_model": 2018,
+        "full_model_binding_cases": 216,
+        "selected_fl2_fl3_cases": 2,
+        "complete_model_original_look_cases": 10,
+        "all_54_new_bindings_with_independent_bad_field": "rejected",
+        "unrelated_invalid_field_still_rejected": true,
+        "synthetic_model_sha256": "0ed224c8e15ff4395875a718a9178c0cbf4b2d5fc4cacb9a782a182f30b43792",
+        "logging_only_substitutions": [
+          "0x2e1b068",
+          "0x368297c"
+        ]
+      },
+      "asset_manifest": {
+        "format": 1,
+        "features": [
+          "fl23",
+          "mr_card_compat"
+        ],
+        "compiler": "Zig 0.13.0",
+        "status": "offline_verified_hardware_unverified",
+        "files": {
+          "fl23-v2-installer.so": "f788fc355f25b845b26337dc2e28f5a565797126b9d4607851ec2fc0d0d0e4b5",
+          "fl23-v2-upgrade.so": "9923fdcc67fe2bfdb6a9220f5f08154813b1cc9849f2909abe00cd83f694f16d",
+          "fl23-v2-runtime.so": "50869aa9998d4455b5903b8cee53becaab1bbd88783667612ed9593850e1aa26"
+        },
+        "elf": {
+          "fl23-v2-installer.so": {
+            "machine": "AArch64",
+            "type": "ET_DYN",
+            "needed_libraries": [],
+            "undefined_symbols": [],
+            "relative_relocations": 82
+          },
+          "fl23-v2-upgrade.so": {
+            "machine": "AArch64",
+            "type": "ET_DYN",
+            "needed_libraries": [],
+            "undefined_symbols": [],
+            "relative_relocations": 2
+          },
+          "fl23-v2-runtime.so": {
+            "machine": "AArch64",
+            "type": "ET_DYN",
+            "needed_libraries": [],
+            "undefined_symbols": [],
+            "relative_relocations": 0
+          }
+        },
+        "repeat_build_identical": true
+      }
+    },
+    "integrated-": {
+      "ap_sha256": "c8cc89e73e0bd03c91e5a9c7147c2d8c829cfea6b8dbd6fd2be20a4eacf423db",
+      "cp_sha256": "60a9de1a0636c7f6b5b98607a4d25eeb48634e25294f632743a6d256e583b370",
+      "exact_reverse": true,
+      "mr_validator": {
+        "elf_section_and_relocation_crosscheck": true,
+        "native_tables_readonly_in_emulator": true,
+        "callee_saved_registers_and_stack_preserved": true,
+        "guest_writes_restricted_to_stack": true,
+        "scalar_comparisons": 14040,
+        "changed_decisions": 108,
+        "original_look_values_0_through_9_unchanged": true,
+        "out_of_range_values_still_rejected": true,
+        "parameters_checked_per_full_model": 2018,
+        "full_model_binding_cases": 216,
+        "selected_fl2_fl3_cases": 2,
+        "complete_model_original_look_cases": 10,
+        "all_54_new_bindings_with_independent_bad_field": "rejected",
+        "unrelated_invalid_field_still_rejected": true,
+        "synthetic_model_sha256": "0ed224c8e15ff4395875a718a9178c0cbf4b2d5fc4cacb9a782a182f30b43792",
+        "logging_only_substitutions": [
+          "0x2e1b068",
+          "0x368297c"
+        ]
+      },
+      "asset_manifest": {
+        "format": 1,
+        "features": [
+          "fl23",
+          "mr_card_compat",
+          "no_ntsc_notice_v2"
+        ],
+        "compiler": "Zig 0.13.0",
+        "status": "offline_verified_hardware_unverified",
+        "files": {
+          "integrated-installer.so": "8cdb11765e8f2e8c77b119073ccc05efdabd000cdf72b92aa92cab6e23271f64",
+          "integrated-upgrade.so": "0357070f84e141be8aa889207e8d468a068d13e01873f4e88ab4a50cfaa85fa1",
+          "integrated-runtime.so": "ed3009d9dd67f8d4f127f33f5e510dcc7780c8c5e0afe9bf07b03bfa0d0d5614"
+        },
+        "elf": {
+          "integrated-installer.so": {
+            "machine": "AArch64",
+            "type": "ET_DYN",
+            "needed_libraries": [],
+            "undefined_symbols": [],
+            "relative_relocations": 86
+          },
+          "integrated-upgrade.so": {
+            "machine": "AArch64",
+            "type": "ET_DYN",
+            "needed_libraries": [],
+            "undefined_symbols": [],
+            "relative_relocations": 6
+          },
+          "integrated-runtime.so": {
+            "machine": "AArch64",
+            "type": "ET_DYN",
+            "needed_libraries": [],
+            "undefined_symbols": [],
+            "relative_relocations": 0
+          }
+        },
+        "repeat_build_identical": true
+      }
+    }
+  },
+  "boot_by_initial_x23": {
+    "0": {
+      "non_ntsc_selection_trace_gprs_identical": 12000,
+      "total": 12288,
+      "ntsc_selection_removed": 288
+    },
+    "1": {
+      "non_ntsc_selection_trace_gprs_identical": 12000,
+      "total": 12288,
+      "ntsc_selection_removed": 288
+    }
+  },
+  "boot_total": 24576,
+  "non_ntsc_selection_trace_gprs_changed": 0,
+  "limits": [
+    "Explicit external predicates and generated MR models; no real CAMPR file, UI, complete boot, flash or capture executed."
+  ],
+  "script_sha256": "85dbd8881f06fe73f816936c9dccb51722f22d3060b6aa0ab033fac630bede3c",
+  "date": "2026-10-19",
+  "host_tests": {
+    "passed": 77,
+    "command": "python -B -m unittest discover -s tests -v"
+  },
+  "upstream_tests": {
+    "passed": 8,
+    "command": "python -B -m unittest discover -s .upstream/a7c2_fl23_preview/tests -v"
+  },
+  "code_and_assets_check": "passed; no camera connection",
+  "production_integration": true,
+  "source_sha256": {
+    "macfl23/integrated.py": "5b801ac5d074791bd63078972f1ba9a9168bf2d83e754fc26cbe4942c3e84f4c",
+    "macfl23/upgrade.py": "65a660ea4b0d5899e219af46705e64fcb9603dfe7093740c8ab60173fb71ef7f",
+    "macfl23/workflow.py": "8bdec23ad82148c67035301f4b601617d586e1d191561ba072a93004a157ab72",
+    "tools/build_integrated_native.py": "19ceef64b33f951f04f46ae7205777faa51099505db3479ab56adf83f2056620"
+  }
+}

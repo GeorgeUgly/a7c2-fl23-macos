@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from macfl23 import cli, ntsc
+from macfl23 import cli, ntsc, integrated
 from macfl23 import workflow as w
 
 
@@ -18,19 +18,19 @@ class NtscTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             job = w.MacJob(Path(directory) / 'work')
             def native(session, name, mode=None):
-                self.assertEqual(job.state['features'], ntsc.FEATURES)
+                self.assertEqual(job.state['features'], integrated.FEATURES)
                 self.assertEqual(len(job.state['backup_files']), 8)
             with patch.object(w, 'MacSession', return_value=session), \
                  patch.object(w.core, 'backup_records', return_value=records), \
                  patch.object(w.core, 'ORIGINAL', [w.core.sha(b'AP'), w.core.sha(b'CP')]), \
                  patch.object(w.core, 'patch_program', side_effect=lambda raw, chip, reverse=False: raw), \
-                 patch.object(ntsc, 'patch_ap', side_effect=lambda raw, reverse=False: raw), \
+                 patch.object(integrated.Profile, 'patch_ap', side_effect=lambda raw, reverse=False: raw), \
                  patch.object(job, 'module', side_effect=native), \
                  contextlib.redirect_stdout(io.StringIO()):
                 job.prepare(disable_ntsc_warning=True)
                 job.validate_candidates()
             state = json.loads(job.state_path.read_text())
-            self.assertEqual(state['features'], ntsc.FEATURES)
+            self.assertEqual(state['features'], integrated.FEATURES)
             self.assertEqual(state['phase'], 'prepared')
             session.cp_write.assert_not_called()
             session.ap_write.assert_not_called()

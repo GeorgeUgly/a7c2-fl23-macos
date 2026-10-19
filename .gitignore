@@ -21,3 +21,9 @@ state.json
 *-report.json
 !macfl23/assets/ntsc-installer.so
 !macfl23/assets/ntsc-runtime.so
+!macfl23/assets/fl23-v2-installer.so
+!macfl23/assets/fl23-v2-upgrade.so
+!macfl23/assets/fl23-v2-runtime.so
+!macfl23/assets/integrated-installer.so
+!macfl23/assets/integrated-upgrade.so
+!macfl23/assets/integrated-runtime.so

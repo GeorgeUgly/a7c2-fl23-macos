@@ -8,16 +8,18 @@ import struct
 from . import ntsc
 
 
-def run(job, session, core, name, mode=None):
-    if name not in ('installer', 'runtime'):
+def run(job, session, core, name, mode=None, profile=ntsc):
+    permitted = ('installer', 'upgrade', 'runtime') if profile.PREFIX != 'ntsc-' else ('installer', 'runtime')
+    if name not in permitted:
         raise ValueError('Unsupported optional module')
-    if (name == 'installer' and mode not in (0, 1, 2)) or (name == 'runtime' and mode is not None):
+    writing = name in ('installer', 'upgrade')
+    if (writing and mode not in (0, 1, 2)) or (name == 'runtime' and mode is not None):
         raise ValueError('Unsupported optional module mode')
-    ntsc.assets()
-    blob = (ntsc.ASSETS / ('ntsc-' + name + '.so')).read_bytes()
-    result = 'a7c2.install.result' if name == 'installer' else 'a7c2.runtime.result'
+    profile.assets()
+    blob = (profile.ASSETS / (profile.PREFIX + name + '.so')).read_bytes()
+    result = 'a7c2.install.result' if writing else 'a7c2.runtime.result'
     names = ['libJit.so', 'a7c2-preview-staged.so', result]
-    names.append('a7c2.install.request' if name == 'installer' else 'a7c2.probe.result')
+    names.append('a7c2.install.request' if writing else 'a7c2.probe.result')
     for item in names:
         if session.read('/tmp/jiritsu/' + item, True) is not None:
             raise RuntimeError('存在先前临时文件；保留状态，不重试：' + item)
@@ -29,13 +31,13 @@ def run(job, session, core, name, mode=None):
         session.temp(created[-1], blob)
         if session.read('/tmp/jiritsu/' + created[-1]) != blob:
             raise RuntimeError('可选模块临时文件读回不符')
-        if name == 'installer':
+        if writing:
             request = struct.pack('<8sII', b'A7INS001', mode, 0)
             created.append('a7c2.install.request')
             session.temp(created[-1], request)
             if session.read('/tmp/jiritsu/' + created[-1]) != request:
                 raise RuntimeError('可选安装器请求读回不符')
-        job.audit('native_about_to_run', module=name, mode=mode, profile=ntsc.FEATURES)
+        job.audit('native_about_to_run', module=name, mode=mode, profile=profile.FEATURES)
         created.extend(['libJit.so', result])
         if name == 'runtime':
             created.append('a7c2.probe.result')
@@ -44,8 +46,8 @@ def run(job, session, core, name, mode=None):
         dest = job.root / 'evidence' / f'{datetime.now():%Y%m%d-%H%M%S-%f}-{name}.bin'
         dest.parent.mkdir(exist_ok=True)
         dest.write_bytes(raw)
-        parsed = ntsc.parse_native(core, name, raw, mode)
-        job.audit('native_verified', module=name, mode=mode, result=parsed, profile=ntsc.FEATURES)
+        parsed = profile.parse_native(core, name, raw, mode)
+        job.audit('native_verified', module=name, mode=mode, result=parsed, profile=profile.FEATURES)
         return parsed
     finally:
         for item in reversed(list(dict.fromkeys(created))):

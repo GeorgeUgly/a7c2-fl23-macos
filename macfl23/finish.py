@@ -68,7 +68,9 @@ def evidence_file(root, suffix, start, end):
 
 def review_history(source):
     source.validate_candidates()
-    require(not ntsc.enabled(source.state), '收尾仅支持原 FL2/FL3，不支持 NTSC 组合')
+    from . import integrated
+    require(not integrated.enabled(source.state) and not ntsc.enabled(source.state),
+            '收尾仅支持旧版 FL2/FL3，不支持新版或 NTSC 组合')
     state = source.state
     require((state.get('phase'), state.get('failed_action'), state.get('failed_during')) ==
             ('needs_review', 'install', 'writing_settings'), '不符合本专项的原始失败阶段')

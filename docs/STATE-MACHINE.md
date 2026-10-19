@@ -25,9 +25,17 @@ CLI 再根据当前阶段和已保存证据确认完整结果，记录 `prepared
 
 ## 恢复
 
-`restore` 调用上游已知候选的完整哈希检查及原文件恢复，成功为 `restored_pending_cold_start`。如果主体完成但普通USB返回超时，会带 `_usb_unconfirmed` 后缀。随后需人工冷启动和检查；本工具的 `verify` 针对已安装FL2/FL3，不验证恢复后的原版运行状态。
+`restore` 对工作目录所选版本执行完整哈希检查及原文件恢复，成功为 `restored_pending_cold_start`。如果主体完成但普通USB返回超时，会带 `_usb_unconfirmed` 后缀。新版两类配置冷启动后可用 `verify` 核验原版完整程序、目标设置和7/9运行区域，成功为 `restored_verified_after_cold_start`；旧目录仍保留原行为，不自动迁移。
 
 默认一份备份；只有显式指定可选的 `--backup-copy` 才额外保存副本。为兼容未修改的上游加载器，单副本状态中的 `backup_copy` 指向 `original/` 自身，`backup_copies: 1` 记录实际份数。该字段不代表存在第二份独立备份。
+
+## 旧版 FL2/FL3 追加升级
+
+`prepare-upgrade` 离线读取已验证的旧目录，创建独立新目录并保存所选两类版本之一，成功为 `upgrade_prepared`。不使用首次 install、不修改源目录。`upgrade` 仅接受此阶段、实际电量、冷启动确认及显式实验选项。
+
+核对完整源程序、当前/保存设置、运行区域及 WBI 后，先创建单次尝试标记，再进入 `writing_upgrade_programs` → `upgrade_programs_written` → 完整程序读回和设置保持性检查 → `upgrade_settings_verified` → WBI收尾 → `installed_pending_cold_start`。冷启动 verify 沿用新目录。升级不提供 CP/AP 设置写入/保存接口。未知结果进入 needs_review，不删标记、不重跑。
+
+升级主体完成而普通USB返回超时，只在完整读回、设置保持性及最后 WBI 完成证据均匹配时记为 `installed_pending_cold_start_usb_unconfirmed`。恢复后 verify 的同类超时阶段为 `restored_verified_after_cold_start_usb_unconfirmed`。
 
 ## 已知 writing_settings 停止点的专项收尾
 

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from .session import app, core, MacSession
-from . import ntsc
+from . import ntsc, integrated
 
 
 def private_new_directory(path):
@@ -27,14 +27,22 @@ def write_new(path, raw):
 class MacJob(app.Job):
     def load(self):
         super().load()
-        if ntsc.enabled(self.state):
+        if integrated.enabled(self.state):
+            integrated.select(self.state).assets()
+        elif ntsc.enabled(self.state):
             ntsc.assets()
         return self
 
     def final_hashes(self):
+        if integrated.enabled(self.state):
+            return [integrated.select(self.state).AP_FINAL, integrated.CP_FL23]
         return [ntsc.AP_COMBINED, ntsc.CP_FL23] if ntsc.enabled(self.state) else core.FINAL
 
     def patch_program(self, raw, chip, reverse=False):
+        if chip == 0 and integrated.enabled(self.state):
+            if reverse:
+                return core.patch_program(integrated.select(self.state).patch_ap(raw, True), chip, True)
+            return integrated.select(self.state).patch_ap(core.patch_program(raw, chip))
         if chip == 0 and ntsc.enabled(self.state):
             if reverse:
                 return core.patch_program(ntsc.patch_ap(raw, True), chip, True)
@@ -42,6 +50,9 @@ class MacJob(app.Job):
         return core.patch_program(raw, chip, reverse)
 
     def module(self, session, name, mode=None):
+        if integrated.enabled(self.state) and name in ('installer', 'upgrade', 'runtime'):
+            from .ntsc_module import run
+            return run(self, session, core, name, mode, profile=integrated.select(self.state))
         if ntsc.enabled(self.state) and name in ('installer', 'runtime'):
             from .ntsc_module import run
             return run(self, session, core, name, mode)
@@ -54,29 +65,63 @@ class MacJob(app.Job):
 
     def verify(self):
         self.load()
-        if not ntsc.enabled(self.state):
+        if integrated.enabled(self.state) and self.state['phase'] in (
+                'restored_pending_cold_start', 'restored_pending_cold_start_usb_unconfirmed',
+                'restored_verified_after_cold_start', 'restored_verified_after_cold_start_usb_unconfirmed'):
+            return self.verify_restored()
+        if not integrated.enabled(self.state) and not ntsc.enabled(self.state):
             return super().verify()
         with MacSession(self.state['identity']) as session:
             self.files(session, self.final_hashes())
-            current = core.backup_records(session.call(session.camera.getBackupPresetData, True))
-            _, new = self.units()
-            if any(current[1][k].data != v for k, v in new.items()):
-                raise ValueError('重启后 CP 参数不符')
-            if any(current[0][k].data != bytes([10 + i]) for i, k in enumerate(core.AP_KEYS)):
-                raise ValueError('重启后 AP 绑定不符')
+            if integrated.enabled(self.state):
+                self.verify_saved_targets(session)
+            else:
+                current = core.backup_records(session.call(session.camera.getBackupPresetData, True))
+                _, new = self.units()
+                if any(current[1][k].data != v for k, v in new.items()):
+                    raise ValueError('重启后 CP 参数不符')
+                if any(current[0][k].data != bytes([10 + i]) for i, k in enumerate(core.AP_KEYS)):
+                    raise ValueError('重启后 AP 绑定不符')
             runtime = self.module(session, 'runtime')
             candidate = self.patch_program((self.root / 'original/appFw.so.bin').read_bytes(), 0)
             for span in runtime['spans']:
                 expected = candidate[span['offset']:span['offset'] + span['length']].hex()
                 if span['memory'] != expected or span['disk'] != expected:
                     raise ValueError('运行状态与所选组合不符；保留状态，检查冷启动结果')
-        self.audit('post_restart_files_and_targets_verified', features=ntsc.FEATURES)
-        print('组合程序、参数和8处运行区域核验通过；NTSC 提示、菜单、拍摄及回放仍需实机确认。', flush=True)
+        self.audit('post_restart_files_and_targets_verified', features=self.state['features'])
+        print(f'组合程序、参数和{len(runtime["spans"])}处运行区域核验通过；NTSC 提示、菜单、拍摄及回放仍需实机确认。', flush=True)
+
+    def verify_saved_targets(self, session, restore=False):
+        records = [core.backup_records(session.call(session.camera.getBackupPresetData, live))
+                   for live in (True, False)]
+        original = core.backup_records((self.root / 'original/backup.private.bin').read_bytes())
+        originals, merged = self.units()
+        desired_ap = dict.fromkeys(core.AP_KEYS, b'\0') if restore else dict(zip(core.AP_KEYS, (b'\x0a', b'\x0b')))
+        for chip, targets in ((0, desired_ap), (1, originals if restore else merged)):
+            for key, desired in targets.items():
+                direct = session.cp_read(key) if chip else session.call(session.camera.readBackup, key)
+                if (direct != desired or any(record[chip][key].data != desired or
+                        record[chip][key].attr != original[chip][key].attr for record in records)):
+                    raise ValueError('冷启动后当前、保存或直接读取的目标设置/属性不符')
+
+    def verify_restored(self):
+        """Integrated-profile recovery: check stock files, saved targets and memory."""
+        with MacSession(self.state['identity']) as session:
+            self.files(session, core.ORIGINAL)
+            self.verify_saved_targets(session, restore=True)
+            runtime = self.module(session, 'runtime')
+            stock = (self.root / 'original/appFw.so.bin').read_bytes()
+            for span in runtime['spans']:
+                expected = stock[span['offset']:span['offset'] + span['length']].hex()
+                if span['memory'] != expected or span['disk'] != expected:
+                    raise ValueError('恢复冷启动后运行内存或磁盘不是原版')
+        self.audit('stock_post_restart_files_settings_runtime_verified')
+        print(f'原版完整程序、当前/保存设置和{len(runtime["spans"])}处运行区域核验通过；菜单、拍摄和回放仍需确认。', flush=True)
 
     def prepare(self, second=None, disable_ntsc_warning=False):
         core.assets()
-        if disable_ntsc_warning:
-            ntsc.assets()
+        selected = integrated.COMBINED if disable_ntsc_warning else integrated.BASE
+        selected.assets()
         second = Path(second).absolute() if second else None
         if second and (second == self.root or second in self.root.parents or self.root in second.parents):
             raise ValueError('两份备份目录不能相同或互相包含')
@@ -94,7 +139,7 @@ class MacJob(app.Job):
         self.state = {'format': 1, 'model': core.MODEL, 'version': core.VERSION,
                       'phase': 'preparing', 'backup_copy': str(second or self.root / 'original'),
                       'backup_copies': 2 if second else 1, 'backup_files': {}, 'journal': [],
-                      'features': list(ntsc.FEATURES) if disable_ntsc_warning else ['fl23']}
+                      'features': list(selected.FEATURES)}
         self.save('preparing')
 
         def backup(name, raw):
@@ -177,30 +222,39 @@ class MacJob(app.Job):
                 raise ValueError('Preflight not complete')
             self.load()
             return 'prepared_usb_unconfirmed'
-        if action in ('install', 'restore'):
-            phase = 'settings_verified' if action == 'install' else 'restoring_programs'
+        if action in ('install', 'restore', 'upgrade'):
+            phase = {'install': 'settings_verified', 'restore': 'restoring_programs',
+                     'upgrade': 'upgrade_settings_verified'}[action]
             if self.state['phase'] != phase or (last.get('module'), last.get('mode')) != ('wbi', 1):
                 raise ValueError('Write completion not verified')
-            expected = self.final_hashes() if action == 'install' else core.ORIGINAL
+            expected = self.final_hashes() if action != 'restore' else core.ORIGINAL
             for chip, name in enumerate(core.PROGRAMS):
                 files = sorted((self.root / 'readback').glob('*-' + name))
                 if not files or core.sha(files[-1].read_bytes()) != expected[chip]:
                     raise ValueError('Full-file evidence mismatch')
-            if not any(row['step'] == 'settings_storage_verified' and row.get('restore') == (action == 'restore')
-                       for row in journal):
+            if action == 'upgrade':
+                preserved = any(row['step'] == 'upgrade_settings_unchanged_verified' for row in journal)
+            else:
+                preserved = any(row['step'] == 'settings_storage_verified' and row.get('restore') == (action == 'restore')
+                                for row in journal)
+            if not preserved:
                 raise ValueError('Missing saved-settings evidence')
-            return ('installed' if action == 'install' else 'restored') + '_pending_cold_start_usb_unconfirmed'
+            return ('restored' if action == 'restore' else 'installed') + '_pending_cold_start_usb_unconfirmed'
         if action == 'verify':
             if last.get('module') != 'runtime':
                 raise ValueError('Runtime evidence missing')
             paths = sorted((self.root / 'evidence').glob('*-runtime.bin'))
             raw = paths[-1].read_bytes()
-            runtime = (ntsc.parse_native(core, 'runtime', raw) if ntsc.enabled(self.state)
+            runtime = (integrated.select(self.state).parse_native(core, 'runtime', raw) if integrated.enabled(self.state)
+                       else ntsc.parse_native(core, 'runtime', raw) if ntsc.enabled(self.state)
                        else core.parse_native('runtime', raw))
-            candidate = (self.root / 'candidate' / 'appFw.so').read_bytes()
+            restored = integrated.enabled(self.state) and self.state['phase'].startswith('restored_')
+            candidate = ((self.root / 'original/appFw.so.bin') if restored
+                         else (self.root / 'candidate/appFw.so')).read_bytes()
             for span in runtime['spans']:
                 expected = candidate[span['offset']:span['offset']+span['length']].hex()
                 if span['memory'] != expected or span['disk'] != expected:
                     raise ValueError('Runtime evidence mismatch')
-            return 'verified_after_cold_start_usb_unconfirmed'
+            return ('restored_verified_after_cold_start_usb_unconfirmed' if restored
+                    else 'verified_after_cold_start_usb_unconfirmed')
         raise ValueError('Unsupported completion review')

@@ -31,7 +31,7 @@ class MrCardProfileTests(unittest.TestCase):
         self.assertFalse(ntsc.enabled({}))
         self.assertFalse(cli.parser().parse_args(['prepare', '--workspace', '/private/work']).disable_ntsc_warning)
         with self.assertRaises(ValueError):
-            ntsc.enabled({'features': ['fl23', 'mr_card_compat']})
+            ntsc.enabled({'features': ['fl23', 'future_mr_compat']})
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             cli.parser().parse_args(['install', '--workspace', '/private/work',
                                      '--battery-percent', '80', '--mr-card-compat'])
