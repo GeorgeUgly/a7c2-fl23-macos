@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 import re
+from time import monotonic
 
 from . import integrated, ntsc
 from .session import app, core, MacSession
@@ -12,6 +13,34 @@ BACKUPS = {'appFw.so.bin', 'cpapp-b.bin.bin', 'backup.private.bin',
            'backup-stored.private.bin', 'unit-02a40001.bin', 'unit-02a4000d.bin',
            'ap-02cf1287.bin', 'ap-02cf1289.bin'}
 ATTEMPT = 'upgrade-attempt.private.json'
+LIVE_TIME_KEY = 0x02770015
+
+
+def verify_upgrade_preservation(before, after, elapsed_seconds):
+    """Upgrade-only time-bounded live exception; saved records stay exact."""
+    if not 0 <= elapsed_seconds <= 86400:
+        raise ValueError('升级检查用时异常或超过24小时；停止升级')
+    for chip in (0, 1):
+        old, new = before[1][chip], after[1][chip]
+        if set(old) != set(new) or any((v.data, v.attr) != (new[k].data, new[k].attr)
+                                     for k, v in old.items()):
+            raise ValueError('升级期间已保存的设置发生变化；停止升级，请保留记录')
+    expected, reviewed = {}, None
+    old, new = before[0][0].get(LIVE_TIME_KEY), after[0][0].get(LIVE_TIME_KEY)
+    if old is not None and new is not None and (old.data, old.attr) != (new.data, new.attr):
+        if old.attr != 2 or new.attr != 2 or len(old.data) != 4 or len(new.data) != 4:
+            raise ValueError('升级期间发现不符合已知规律的设置变化；停止升级')
+        delta = int.from_bytes(new.data, 'little') - int.from_bytes(old.data, 'little')
+        if delta <= 0 or delta % 60 or abs(delta - elapsed_seconds) > 120:
+            raise ValueError('升级期间发现无法确认的设置变化；停止升级，请保留记录')
+        expected[0, LIVE_TIME_KEY] = new.data
+        reviewed = {'key': '0x02770015', 'delta': delta, 'elapsed_seconds': elapsed_seconds,
+                    'semantics': 'unconfirmed'}
+    live = core.verify_preservation(before[0], after[0], expected)
+    if reviewed is not None:
+        live['reviewed_live_time_field'] = reviewed
+    stored = {'preserved_properties': sum(len(chip) for chip in before[1]), 'runtime_counters': []}
+    return [live, stored]
 
 
 def prepare_upgrade(source_path, output, disable_ntsc_warning=False):
@@ -161,6 +190,7 @@ class UpgradeJob(MacJob):
             session = UpgradeSession(raw_session, integrated.select(self.state))
             # Bypass MacJob.files' final-profile dispatch for the source check.
             app.Job.files(self, session, list(core.FINAL))
+            snapshot_started = monotonic()
             before = self.snapshot(session, 'upgrade-before')
             runtime = self.module(session, 'runtime')
             baseline = core.patch_program((self.root / 'original/appFw.so.bin').read_bytes(), 0)
@@ -176,7 +206,7 @@ class UpgradeJob(MacJob):
             self.save('upgrade_programs_written')
             self.files(session, self.final_hashes())
             after = self.snapshot(session, 'upgrade-after')
-            preservation = [core.verify_preservation(a, b, {}) for a, b in zip(before, after)]
+            preservation = verify_upgrade_preservation(before, after, monotonic() - snapshot_started)
             self.audit('upgrade_settings_unchanged_verified', live=preservation[0], stored=preservation[1])
             self.save('upgrade_settings_verified')
             self.module(session, 'wbi', 1)

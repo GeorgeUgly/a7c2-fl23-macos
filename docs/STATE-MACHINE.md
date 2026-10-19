@@ -35,6 +35,8 @@ CLI 再根据当前阶段和已保存证据确认完整结果，记录 `prepared
 
 核对完整源程序、当前/保存设置、运行区域及 WBI 后，先创建单次尝试标记，再进入 `writing_upgrade_programs` → `upgrade_programs_written` → 完整程序读回和设置保持性检查 → `upgrade_settings_verified` → WBI收尾 → `installed_pending_cold_start`。冷启动 verify 沿用新目录。升级不提供 CP/AP 设置写入/保存接口。未知结果进入 needs_review，不删标记、不重跑。
 
+0.2.1 在本地保持性检查中仅为本次观察到的当前时间相关字段增加有界检查，保存设置必须逐项完全一致；规则见 [UPGRADE.md](UPGRADE.md)。符合条件时继续现有阶段和WBI流程，不在失败后自动重试；已有 `needs_review` 目录也不会自动迁移或续写。固定上游白名单与程序模块不变。
+
 升级主体完成而普通USB返回超时，只在完整读回、设置保持性及最后 WBI 完成证据均匹配时记为 `installed_pending_cold_start_usb_unconfirmed`。恢复后 verify 的同类超时阶段为 `restored_verified_after_cold_start_usb_unconfirmed`。
 
 ## 已知 writing_settings 停止点的专项收尾
