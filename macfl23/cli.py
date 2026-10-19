@@ -248,6 +248,8 @@ def run_camera(args):
 
 def save_failure(job, action, exc):
     phase = job.state.get('phase')
+    if action == 'verify' and phase == 'needs_review' and job.state.get('failed_action') == 'verify':
+        phase = job.state.get('failed_during')
     job.save('needs_review', failed_during=phase, failed_action=action,
              last_error=type(exc).__name__ + ': ' + str(exc))
     evidence = job.root / 'evidence'

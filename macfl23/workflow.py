@@ -67,14 +67,28 @@ class MacJob(app.Job):
         """Permit only a new read-only verify, preserving the failed evidence."""
         from datetime import datetime
         from .finish import require, evidence_file
+        from .messages import simplify_message
         state = self.state
-        require(integrated.enabled(state) and
-                (state.get('phase'), state.get('failed_action'), state.get('failed_during')) ==
-                ('needs_review', 'verify', 'installed_pending_cold_start') and
-                state.get('last_error') == 'ValueError: 运行状态与所选组合不符；保留状态，检查冷启动结果',
-                '不符合未冷启动时只读验证失败的专项阶段')
+        profile = integrated.select(state) if integrated.enabled(state) else None
+        require(profile is not None or not ntsc.enabled(state), '本项重验暂不支持旧版跳过提示组合')
+        expected_error = ('运行状态与所选组合不符；保留状态，检查冷启动结果' if profile else
+                          '执行期仍有旧资料；请确认已关机并取出电池后再开机')
+        error = state.get('last_error', '')
         rows = state.get('journal', [])
         starts = [i for i,r in enumerate(rows) if r.get('step') == 'host_full_file_readback_verified']
+        # An older controlled reverify could overwrite failed_during with
+        # needs_review. Its existing audit proves it passed the narrow gate.
+        pending = state.get('failed_during') in ('installed_pending_cold_start',
+                                                'installed_pending_cold_start_usb_unconfirmed')
+        if state.get('failed_during') == 'needs_review':
+            prior = rows[starts[-1]-1] if starts and starts[-1] > 0 else {}
+            pending = (prior.get('step') == 'explicit_read_only_reverify_after_cold_start' and
+                       prior.get('review', {}).get('operation') == 'read_only_verify' and
+                       prior['review'].get('previous_session_returned_normally') is True and
+                       prior['review'].get('stale_regions', 0) > 0)
+        require((state.get('phase'), state.get('failed_action')) == ('needs_review', 'verify') and pending and
+                error.startswith('ValueError: ') and simplify_message(error.removeprefix('ValueError: ')) == expected_error,
+                '不符合未冷启动时只读验证失败的专项阶段')
         require(bool(starts), '缺少前次完整程序读回')
         tail = rows[starts[-1]:]
         require([r.get('step') for r in tail] == ['host_full_file_readback_verified', 'native_about_to_run',
@@ -85,9 +99,11 @@ class MacJob(app.Job):
                 '前次验证不是正常返回的只读运行检查')
         path = evidence_file(self.root, 'runtime.bin', datetime.fromisoformat(tail[1]['time']),
                              datetime.fromisoformat(tail[-1]['time']))
-        runtime = integrated.select(state).parse_native(core,'runtime',path.read_bytes())
+        runtime = (profile.parse_native(core, 'runtime', path.read_bytes()) if profile
+                   else core.parse_native('runtime', path.read_bytes()))
         require(runtime == tail[2].get('result'), '前次运行报告与审计不符')
-        old = core.patch_program((self.root/'original/appFw.so.bin').read_bytes(),0)
+        original = (self.root/'original/appFw.so.bin').read_bytes()
+        old = core.patch_program(original, 0) if profile else original
         new = (self.root/'candidate/appFw.so').read_bytes()
         stale = 0
         for span in runtime['spans']:
@@ -97,7 +113,8 @@ class MacJob(app.Job):
                     '前次运行报告含未知程序内容')
             stale += span['memory'] != new_hex
         require(stale > 0, '前次报告并非已知旧内容仍在内存')
-        return {'stale_regions':stale,'previous_session_returned_normally':True,'operation':'read_only_verify'}
+        return {'stale_regions':stale,'previous_session_returned_normally':True,'operation':'read_only_verify',
+                'profile':'integrated' if profile else 'legacy_fl23', 'previous_error':state['last_error']}
 
     def verify(self):
         self.load()
