@@ -1,0 +1,245 @@
+{
+  "status": "offline_review_requires_prompt_priority_caveat",
+  "camera_io": false,
+  "installed": false,
+  "source_ap_sha256": "1aaeb8fbe0297950cab454d498d1a5ba874f91542aa2737aae27a73971e324d7",
+  "combined_ap_sha256": "31b7336d39e211bdd9d2cb51d17e831a81703b86b9fab81bd40c97081fd4e8c9",
+  "mr_combined_ap_sha256": "f75abf49555190549898fcd8d96562e5884898addbc970023642a7bbe5896ddd",
+  "mr_combined_boot_window_identical": true,
+  "firmware_patch_changed_by_this_review": false,
+  "counts": {
+    "total": 3072,
+    "unchanged": 2800,
+    "ntsc_selection_changed": 192,
+    "other_selection_changed": 80,
+    "matches_native_fallback_reference": 384
+  },
+  "outside_target_gate_cases_have_identical_instruction_trace_and_gprs": true,
+  "outside_target_gate_cases": 2688,
+  "isolated_instruction_flag_comparisons": 128,
+  "isolated_comparisons_preserve_all_gprs_and_stack": true,
+  "native_window_memory_writes": 0,
+  "external_predicate_fixtures": [
+    "0x205f250",
+    "0x205f1ec",
+    "0x25aa880"
+  ],
+  "examples_of_other_selection_changes": [
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x4b7",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 1,
+      "selector_1660718": 0,
+      "predicate_25aa880": 1,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 1108,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x36c",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 0,
+      "selector_1660718": 0,
+      "predicate_25aa880": 0,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 876,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x36c",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 0,
+      "selector_1660718": 0,
+      "predicate_25aa880": 1,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 876,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x36c",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 0,
+      "selector_1660718": 1,
+      "predicate_25aa880": 0,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 876,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x36c",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 0,
+      "selector_1660718": 1,
+      "predicate_25aa880": 1,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 876,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x36c",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 1,
+      "selector_1660718": 0,
+      "predicate_25aa880": 0,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 876,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 0,
+      "other_id": "0x36c",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 1,
+      "selector_1660718": 0,
+      "predicate_25aa880": 1,
+      "before": {
+        "message_id": 1207,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 1108,
+        "mode": 835
+      }
+    },
+    {
+      "path": "first",
+      "current": 0,
+      "default": 1,
+      "reset": 0,
+      "boot_type": 0,
+      "display": 0,
+      "pending": 1,
+      "other_id": "0x390",
+      "predicate_205f250": 0,
+      "predicate_205f1ec": 1,
+      "selector_1660718": 0,
+      "predicate_25aa880": 1,
+      "before": {
+        "message_id": 912,
+        "mode": 835
+      },
+      "after": {
+        "message_id": 1108,
+        "mode": 835
+      }
+    }
+  ],
+  "conclusion": "The patch bypasses the NTSC condition, not just its displayed text. Entering the normal fallback can change message IDs other than 0x36b in fixture combinations; their actual UI text is not identified.",
+  "limitations": [
+    "No complete boot, actual rendering, persisted settings, USB or capture were executed.",
+    "External predicates and getters are fixtures; complete real-device reachability is not established.",
+    "The extended selection matrix initializes the later mode selector x23 to zero; the earlier gate-only matrix covered both selector branches.",
+    "Message IDs other than NTSC/PAL are intentionally left unnamed without decoded UI resources."
+  ],
+  "date": "2026-10-19",
+  "compiled_modules": {
+    "window_count": 42,
+    "modules": {
+      "installer": {
+        "machine": "AArch64",
+        "type": "ET_DYN",
+        "needed_libraries": [],
+        "undefined_symbols": [],
+        "relative_relocations": 84,
+        "sha256": "f5c848e48eefda88311c90f97c0d708388af41022999960086853980c55aaf04"
+      },
+      "runtime": {
+        "machine": "AArch64",
+        "type": "ET_DYN",
+        "needed_libraries": [],
+        "undefined_symbols": [],
+        "relative_relocations": 0,
+        "sha256": "a4d46c0b89bb47e618ca09858b613586167e73c5309e7a441c8580a000673947",
+        "eight_offsets_and_lengths_match": true
+      }
+    },
+    "assets_not_modified": true
+  },
+  "original_gate_only_matrix": {
+    "total": 1024,
+    "ntsc_notice_removed": 24,
+    "ntsc_gate_bypassed_without_visible_notice": 24,
+    "unchanged": 976,
+    "pal_notice_preserved": 24,
+    "invalid_model_enums": 8
+  },
+  "review_script_sha256": "32e8f76be0e0dbd825a20582faf3f63fcbc13f50570c1ca64f901970e6bb3973"
+}
