@@ -14,7 +14,7 @@
 | [ma1co/Sony-PMCA-RE](https://github.com/ma1co/Sony-PMCA-RE) | 上游使用的 USB/Senser 通信、机身备份操作和解析实现。 |
 | [ma1co/fwtool.py](https://github.com/ma1co/fwtool.py/pull/52) | 上游引用的官方固件离线解包分析工具，具体为 PR #52；本项目运行时不依赖它。 |
 
-我们的新增工作是 macOS USB 接管、流程与错误处理、备份核验、简明/AI安装教程，以及独立的实验性 NTSC 开机提示可选补丁。FL2/FL3 移植研究与基础工具的贡献归各原作者；固定提交、许可和完整致谢见 [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md)。
+我们的新增工作是 macOS USB 接管、流程与错误处理、备份核验、简明/AI安装教程，以及独立的实验性 **NTSC 开机提示取消**补丁。FL2/FL3 移植研究与基础工具的贡献归各原作者；固定提交、许可和完整致谢见 [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md)。
 
 > **先看这一句：这是实验性相机改装，有无法正常开机的风险，备份不保证能救砖。** 前身脚本已在一台机身完成安装，本仓库的 `verify` 已实机通过；本仓库通用版的首次备份、安装和恢复仍未实机测试。[查看验证范围](docs/VALIDATION.md)
 
