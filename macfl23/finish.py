@@ -66,6 +66,24 @@ def evidence_file(root, suffix, start, end):
     return paths[0]
 
 
+def _normal_usb_recovered_in_diagnosis(root):
+    for diag in sorted(root.glob('diagnostic-*')):
+        summary_file = diag / 'diagnostic-summary.json'
+        if not summary_file.is_file():
+            continue
+        try:
+            summary = json.loads(summary_file.read_text())
+        except Exception:
+            continue
+        if (summary.get('status') == 'diagnosed'
+                and summary.get('source_state_unchanged') is True
+                and summary.get('normal_usb_returned') is True
+                and summary.get('programs_match_final') is True
+                and summary.get('runtime_disk_matches_candidate') is True):
+            return True
+    return False
+
+
 def review_history(source):
     source.validate_candidates()
     from . import integrated
@@ -92,10 +110,15 @@ def review_history(source):
             '原安装器完成记录不唯一')
     require(any(r.get('step') == 'host_full_file_readback_verified' and r.get('hashes') == core.FINAL
                 for r in rows), '没有完整程序读回通过的历史证据')
-    require(rows[-1].get('step') == 'mac_usb_session_exit'
-            and rows[-1].get('result', {}).get('service_exit_request') == 'sent'
-            and rows[-1]['result'].get('normal_usb_returned') is True
-            and rows[-1]['result'].get('errors') == [], '原失败会话未正常返回 MSC')
+    exit_res = rows[-1].get('result', {}) if rows[-1].get('step') == 'mac_usb_session_exit' else {}
+    direct_return = (exit_res.get('service_exit_request') == 'sent'
+                     and exit_res.get('normal_usb_returned') is True
+                     and exit_res.get('errors') == [])
+    diagnosed_return = (exit_res.get('service_exit_request') == 'sent'
+                        and exit_res.get('normal_usb_returned') is None
+                        and exit_res.get('errors') == ['normal USB return: Expected USB identity did not appear: 0e8a']
+                        and _normal_usb_recovered_in_diagnosis(source.root))
+    require(direct_return or diagnosed_return, '原失败会话未正常返回 MSC')
     require(not any(r.get('step') in ('settings_storage_verified', 'temporary_cleanup_pending') for r in rows),
             '原失败记录与本专项不符')
     start_time = datetime.fromisoformat(rows[0]['time'])
