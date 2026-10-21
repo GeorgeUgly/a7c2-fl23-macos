@@ -92,7 +92,8 @@ class FinishTests(unittest.TestCase):
                     'programs_match_final': True,
                     'runtime_disk_matches_candidate': True,
                 }))
-                self.assertEqual(f.review_history(source)['observed_delta'], 60)
+                # A shareable summary alone is not recovery evidence.
+                with self.assertRaises(ValueError): f.review_history(source)
                 source.state['journal'][-1]['result'] = {'service_exit_request': 'sent', 'normal_usb_returned': True, 'errors': []}
                 source.state['features'] = ['fl23', 'no_ntsc_notice']
                 with self.assertRaises(ValueError): f.review_history(source)
